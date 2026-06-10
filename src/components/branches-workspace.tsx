@@ -56,12 +56,52 @@ export function BranchesWorkspace() {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_0.85fr]">
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-950">
             Performance mensual
           </h2>
-          <div className="mt-5 overflow-x-auto">
+          <div className="mt-5 grid gap-3 md:hidden">
+            {data.branches.map((branch) => (
+              <div
+                key={branch.id}
+                className="rounded-lg border border-slate-200 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-950">
+                      {branch.name}
+                    </p>
+                    <p className="text-sm text-slate-500">{branch.city}</p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                    <TrendingUp className="size-3.5" />
+                    +8,4%
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Stock
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {branch.stock}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Mes
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {formatCurrency(branch.monthlySales)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 hidden overflow-x-auto md:block">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
@@ -104,7 +144,7 @@ export function BranchesWorkspace() {
           <h2 className="text-base font-semibold text-slate-950">
             Mapa operativo
           </h2>
-          <div className="relative mt-5 h-96 overflow-hidden rounded-lg bg-slate-100">
+          <div className="relative mt-5 h-64 overflow-hidden rounded-lg bg-slate-100 sm:h-80 lg:h-96">
             <div className="absolute inset-0 bg-[linear-gradient(90deg,#dbeafe_1px,transparent_1px),linear-gradient(#dbeafe_1px,transparent_1px)] bg-[size:48px_48px]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_34%,#bfdbfe_0,transparent_18%),radial-gradient(circle_at_72%_56%,#fed7aa_0,transparent_18%),radial-gradient(circle_at_46%_72%,#bbf7d0_0,transparent_16%)]" />
             {data.branches.map((branch, index) => (

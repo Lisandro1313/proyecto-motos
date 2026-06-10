@@ -139,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const sidebar = useMemo(
     () => (
-      <aside className="flex h-full w-72 flex-col border-r border-slate-900 bg-[#070b16] text-white">
+      <aside className="flex h-full w-[min(18rem,calc(100vw-3rem))] flex-col border-r border-slate-900 bg-[#070b16] text-white lg:w-72">
         <div className="flex h-20 items-center gap-3 px-6">
           <div className="grid size-11 place-items-center rounded-lg bg-blue-600">
             <Bike className="size-6" />
@@ -249,7 +249,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 bg-slate-950/60 lg:hidden">
-          <div className="h-full w-72">{sidebar}</div>
+          <div className="h-full w-[min(18rem,calc(100vw-3rem))]">{sidebar}</div>
           <button
             type="button"
             aria-label="Cerrar menú"
@@ -263,7 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="lg:pl-72">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="flex min-h-20 items-center gap-3 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-16 items-center gap-2 px-3 py-3 sm:min-h-20 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
             <button
               type="button"
               aria-label="Abrir menú"
@@ -274,7 +274,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
 
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-semibold text-slate-950 sm:text-2xl">
+              <h1 className="line-clamp-2 text-base font-semibold leading-5 text-slate-950 sm:truncate sm:text-2xl sm:leading-normal">
                 {currentPage.title}
               </h1>
               <p className="mt-1 hidden text-sm text-slate-500 sm:block">
@@ -329,7 +329,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="min-w-0 px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+          {children}
+        </main>
       </div>
     </div>
   );

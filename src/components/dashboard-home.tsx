@@ -79,7 +79,7 @@ export function DashboardHome() {
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.85fr_1fr]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[1.1fr_0.85fr_1fr]">
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
@@ -116,7 +116,7 @@ export function DashboardHome() {
           </div>
 
           <div className="mt-4 rounded-lg bg-blue-50 p-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="font-semibold text-blue-950">
                   {simulatorMotorcycle.brand} {simulatorMotorcycle.model}
@@ -131,7 +131,7 @@ export function DashboardHome() {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
             {financingOptions.map((installments) => {
               const monthly = Math.round(
                 simulatorMotorcycle.price / installments,
@@ -163,7 +163,7 @@ export function DashboardHome() {
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_1fr]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[1.1fr_1fr]">
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-slate-950">
@@ -177,7 +177,31 @@ export function DashboardHome() {
             </Link>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="grid gap-3 md:hidden">
+            {data.motorcycles.slice(0, 6).map((motorcycle) => (
+              <div
+                key={motorcycle.id}
+                className="rounded-lg border border-slate-100 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-950">
+                      {motorcycle.brand} {motorcycle.model}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {motorcycle.category} · Stock {motorcycle.stock}
+                    </p>
+                  </div>
+                  <StatusBadge status={motorcycle.status} />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-950">
+                  {formatCurrency(motorcycle.price)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[680px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
@@ -244,7 +268,7 @@ export function DashboardHome() {
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1fr]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[0.9fr_1fr]">
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-slate-950">
@@ -262,7 +286,7 @@ export function DashboardHome() {
             {recentSales.map((sale) => (
               <div
                 key={sale.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 p-3"
+                className="flex flex-col gap-3 rounded-lg border border-slate-100 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-xs font-bold text-blue-700">
@@ -277,7 +301,7 @@ export function DashboardHome() {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-left sm:text-right">
                   <p className="font-semibold text-emerald-600">
                     {formatCurrency(sale.price)}
                   </p>

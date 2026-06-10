@@ -44,7 +44,7 @@ export function InventoryWorkspace() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[390px_1fr]">
+    <div className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-slate-950">
           Registrar moto
@@ -176,13 +176,13 @@ export function InventoryWorkspace() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Unidades</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {totals.stockTotal}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Valor de lista</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {formatCurrency(
                 data.motorcycles.reduce(
                   (total, motorcycle) =>
@@ -194,7 +194,7 @@ export function InventoryWorkspace() {
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Bajo stock</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {
                 data.motorcycles.filter((motorcycle) => motorcycle.stock <= 4)
                   .length
@@ -213,8 +213,8 @@ export function InventoryWorkspace() {
                 {filteredMotorcycles.length} modelos encontrados
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex min-w-64 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+              <div className="flex w-full items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 sm:min-w-64">
                 <Search className="size-4 text-slate-400" />
                 <input
                   value={query}
@@ -226,7 +226,7 @@ export function InventoryWorkspace() {
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 sm:w-auto"
               >
                 {categories.map((item) => (
                   <option key={item}>{item}</option>
@@ -235,7 +235,78 @@ export function InventoryWorkspace() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="grid gap-3 md:hidden">
+            {filteredMotorcycles.map((motorcycle) => (
+              <article
+                key={motorcycle.id}
+                className="rounded-lg border border-slate-200 p-3"
+              >
+                <div className="flex gap-3">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                    <Image
+                      src={motorcycle.image}
+                      alt={`${motorcycle.brand} ${motorcycle.model}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-slate-950">
+                      {motorcycle.brand} {motorcycle.model}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {motorcycle.category} · {motorcycle.branch}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <StatusBadge status={motorcycle.status} />
+                      <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                        Stock {motorcycle.stock}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Precio
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {formatCurrency(motorcycle.price)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Margen
+                    </p>
+                    <p className="font-semibold text-emerald-600">
+                      {formatCurrency(motorcycle.price - motorcycle.cost)}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustMotorcycleStock(motorcycle.id, -1)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    <Minus className="size-4" />
+                    Restar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => adjustMotorcycleStock(motorcycle.id, 1)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+                  >
+                    <Plus className="size-4" />
+                    Sumar
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">

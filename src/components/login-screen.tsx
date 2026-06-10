@@ -60,10 +60,10 @@ export function LoginScreen() {
         </div>
       </section>
 
-      <section className="flex items-center justify-center px-4 py-10 sm:px-6">
+      <section className="flex items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+          className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8"
         >
           <div className="grid size-12 place-items-center rounded-lg bg-blue-600 text-white">
             <LockKeyhole className="size-6" />

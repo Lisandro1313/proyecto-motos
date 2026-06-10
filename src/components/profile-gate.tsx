@@ -98,9 +98,9 @@ export function ProfileGate() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#f4f7fb] px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <div className="grid size-12 place-items-center rounded-lg bg-blue-600 text-white">
               <Bike className="size-7" />
@@ -115,7 +115,7 @@ export function ProfileGate() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="grid gap-2 sm:flex sm:flex-row">
             {activeProfile ? (
               <button
                 type="button"
@@ -242,7 +242,7 @@ export function ProfileGate() {
                   onChange={(event) => setPin(event.target.value)}
                   inputMode="numeric"
                   maxLength={6}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-3 text-center text-2xl font-semibold tracking-[0.4em] outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-3 text-center text-xl font-semibold tracking-[0.25em] outline-none focus:border-blue-500 sm:text-2xl sm:tracking-[0.4em]"
                   placeholder="••••"
                 />
               </label>
@@ -310,7 +310,7 @@ export function ProfileGate() {
                       </select>
                     </label>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-[1fr_80px]">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_80px]">
                     <label className="space-y-1.5">
                       <span className="text-xs font-semibold uppercase text-slate-500">
                         PIN

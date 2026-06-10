@@ -54,7 +54,7 @@ export function SalesWorkspace() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[390px_1fr]">
+    <div className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-slate-950">
           Registrar venta
@@ -169,19 +169,19 @@ export function SalesWorkspace() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Facturación</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {formatCurrency(totals.salesTotal)}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Operaciones</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {data.sales.length}
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Ticket promedio</p>
-            <p className="mt-1 text-3xl font-semibold text-slate-950">
+            <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
               {formatCurrency(
                 data.sales.length ? totals.salesTotal / data.sales.length : 0,
               )}
@@ -199,7 +199,7 @@ export function SalesWorkspace() {
                 {filteredSales.length} operaciones registradas
               </p>
             </div>
-            <div className="flex min-w-72 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <div className="flex w-full items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 lg:w-auto lg:min-w-72">
               <Search className="size-4 text-slate-400" />
               <input
                 value={query}
@@ -210,7 +210,67 @@ export function SalesWorkspace() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="grid gap-3 md:hidden">
+            {filteredSales.map((sale) => (
+              <article
+                key={sale.id}
+                className="rounded-lg border border-slate-200 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-xs font-bold text-blue-700">
+                      {initials(sale.customerName)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-950">
+                        {sale.customerName}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {sale.motorcycleModel}
+                      </p>
+                    </div>
+                  </div>
+                  <StatusBadge status={sale.status} />
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Importe
+                    </p>
+                    <p className="font-semibold text-emerald-600">
+                      {formatCurrency(sale.price)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Fecha
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {formatDate(sale.date)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Pago
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {sale.paymentMethod}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Perfil
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {sale.seller}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">

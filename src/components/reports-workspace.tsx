@@ -51,25 +51,25 @@ export function ReportsWorkspace() {
       <section className="grid gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Ventas</p>
-          <p className="mt-1 text-3xl font-semibold text-slate-950">
+          <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
             {formatCurrency(totals.salesTotal)}
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Margen bruto</p>
-          <p className="mt-1 text-3xl font-semibold text-slate-950">
+          <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
             {formatCurrency(grossMargin)}
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Mora</p>
-          <p className="mt-1 text-3xl font-semibold text-slate-950">
+          <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
             {formatCurrency(totals.overdueTotal)}
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Stock crítico</p>
-          <p className="mt-1 text-3xl font-semibold text-slate-950">
+          <p className="mt-1 break-words text-2xl font-semibold text-slate-950 sm:text-3xl">
             {lowStock.length}
           </p>
         </div>
@@ -162,7 +162,7 @@ export function ReportsWorkspace() {
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+      <section className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_0.9fr]">
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <BarChart3 className="size-5 text-blue-600" />
@@ -170,7 +170,57 @@ export function ReportsWorkspace() {
               Trabajo por perfil
             </h2>
           </div>
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 grid gap-3 md:hidden">
+            {profilePerformance.map(({ profile, salesCount, revenue, activityCount }) => (
+              <div
+                key={profile.id}
+                className="rounded-lg border border-slate-200 p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="grid size-10 shrink-0 place-items-center rounded-lg text-xs font-bold text-white"
+                    style={{ backgroundColor: profile.color }}
+                  >
+                    {profile.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-950">
+                      {profile.name}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {profile.role} · {profile.branch}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Ventas
+                    </p>
+                    <p className="font-semibold text-slate-950">{salesCount}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Total
+                    </p>
+                    <p className="font-semibold text-emerald-600">
+                      {formatCurrency(revenue)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase text-slate-400">
+                      Eventos
+                    </p>
+                    <p className="font-semibold text-slate-950">
+                      {activityCount}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 hidden overflow-x-auto md:block">
             <table className="w-full min-w-[680px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
