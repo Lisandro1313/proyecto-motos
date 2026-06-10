@@ -41,3 +41,28 @@ textarea {
   background: #bfdbfe;
   color: #0f172a;
 }
+
+@keyframes moto-loading-progress {
+  0% {
+    transform: translateX(-85%) scaleX(0.35);
+  }
+
+  45% {
+    transform: translateX(30%) scaleX(0.8);
+  }
+
+  100% {
+    transform: translateX(150%) scaleX(0.35);
+  }
+}
+
+@keyframes moto-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}

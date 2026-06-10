@@ -3,7 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   BarChart3,
   Bell,
@@ -21,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { MotoLoadingScreen } from "@/components/moto-loading-screen";
 
 const navigation = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -68,26 +76,12 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-function LoadingScreen() {
-  return (
-    <div className="grid min-h-screen place-items-center bg-[#f4f7fb] px-4">
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-        <div className="mx-auto grid size-12 place-items-center rounded-lg bg-blue-600 text-white">
-          <Bike className="size-6" />
-        </div>
-        <p className="mt-4 text-sm font-semibold text-slate-950">
-          Preparando MotoCenter
-        </p>
-        <p className="mt-1 text-sm text-slate-500">Validando sesión local...</p>
-      </div>
-    </div>
-  );
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const previousPathname = useRef(pathname);
   const {
     ready,
     adminSession,
@@ -99,6 +93,71 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isProfilesRoute = pathname === "/perfiles";
   const isAuthRoute = isLoginRoute || isProfilesRoute;
   const currentPage = pageTitles[pathname] || pageTitles["/"];
+
+  useEffect(() => {
+    function handleInternalNavigation(event: MouseEvent) {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+
+      const destination = new URL(anchor.href);
+      const currentUrl = new URL(window.location.href);
+
+      if (
+        destination.origin !== currentUrl.origin ||
+        destination.pathname === currentUrl.pathname
+      ) {
+        return;
+      }
+
+      setRouteLoading(true);
+    }
+
+    document.addEventListener("click", handleInternalNavigation);
+
+    return () => {
+      document.removeEventListener("click", handleInternalNavigation);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousPathname.current === pathname) return;
+
+    previousPathname.current = pathname;
+
+    if (!ready || isAuthRoute) {
+      const timeout = window.setTimeout(() => {
+        setRouteLoading(false);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
+    }
+
+    const showTimeout = window.setTimeout(() => {
+      setRouteLoading(true);
+    }, 0);
+    const timeout = window.setTimeout(() => {
+      setRouteLoading(false);
+    }, 820);
+
+    return () => {
+      window.clearTimeout(showTimeout);
+      window.clearTimeout(timeout);
+    };
+  }, [isAuthRoute, pathname, ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -233,18 +292,24 @@ export function AppShell({ children }: { children: ReactNode }) {
     [activeProfile, adminSession, closeSession, pathname, switchProfile],
   );
 
-  if (!ready) return <LoadingScreen />;
+  if (!ready) {
+    return <MotoLoadingScreen title="Validando sesión local..." />;
+  }
 
-  if (!adminSession && !isLoginRoute) return <LoadingScreen />;
+  if (!adminSession && !isLoginRoute) {
+    return <MotoLoadingScreen title="Preparando acceso..." />;
+  }
 
   if (adminSession && !activeProfile && !isProfilesRoute) {
-    return <LoadingScreen />;
+    return <MotoLoadingScreen title="Buscando perfiles..." />;
   }
 
   if (isAuthRoute) return <>{children}</>;
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
+      {routeLoading ? <MotoLoadingScreen mode="overlay" /> : null}
+
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
 
       {mobileOpen ? (

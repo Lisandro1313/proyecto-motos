@@ -44,6 +44,10 @@ Desde `Reportes > Mantenimiento de datos` se puede descargar un backup JSON, imp
 
 Para migrar la información real desde Drive, ver `docs/DATA_MIGRATION.md`.
 
+## Experiencia
+
+La app incluye una pantalla de carga temática de motos entre secciones, con tips de taller y mensajes rotativos.
+
 ## Deploy
 
 El proyecto está preparado para Vercel. No necesita Render en esta etapa porque Next.js y Supabase cubren frontend, server runtime, base de datos y auth.
