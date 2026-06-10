@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { BadgeDollarSign, Plus, Search } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
+import { useAuth } from "@/context/auth-context";
 import { formatCurrency, formatDate, initials } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 import type { PaymentMethod } from "@/lib/types";
@@ -16,6 +17,7 @@ const paymentMethods: PaymentMethod[] = [
 
 export function SalesWorkspace() {
   const { data, totals, registerSale } = useAgencyStore();
+  const { activeProfile } = useAuth();
   const [query, setQuery] = useState("");
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState(
     data.motorcycles[0]?.id || "",
@@ -35,6 +37,8 @@ export function SalesWorkspace() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!activeProfile) return;
+
     const formData = new FormData(event.currentTarget);
 
     registerSale({
@@ -42,7 +46,8 @@ export function SalesWorkspace() {
       motorcycleId: String(formData.get("motorcycleId") || ""),
       branch: String(formData.get("branch") || "Casa Central"),
       paymentMethod: String(formData.get("paymentMethod") || "Contado") as PaymentMethod,
-      seller: String(formData.get("seller") || "Administrador"),
+      seller: activeProfile.name,
+      sellerId: activeProfile.id,
     });
 
     event.currentTarget.reset();
@@ -54,6 +59,17 @@ export function SalesWorkspace() {
         <h2 className="text-base font-semibold text-slate-950">
           Registrar venta
         </h2>
+        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4">
+          <p className="text-xs font-semibold uppercase text-blue-700">
+            Perfil activo
+          </p>
+          <p className="mt-1 font-semibold text-blue-950">
+            {activeProfile?.name}
+          </p>
+          <p className="text-sm text-blue-700">
+            {activeProfile?.role} · {activeProfile?.branch}
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <label className="block space-y-1.5">
@@ -138,18 +154,6 @@ export function SalesWorkspace() {
               </select>
             </label>
           </div>
-
-          <label className="block space-y-1.5">
-            <span className="text-xs font-semibold uppercase text-slate-500">
-              Vendedor
-            </span>
-            <input
-              name="seller"
-              required
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              placeholder="Ej: Camila Ríos"
-            />
-          </label>
 
           <button
             type="submit"

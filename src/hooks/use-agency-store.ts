@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { demoData } from "@/lib/demo-data";
 import type {
+  ActiveWorker,
   AgencyData,
   Customer,
   Motorcycle,
@@ -31,6 +32,7 @@ type SaleInput = {
   branch: string;
   paymentMethod: PaymentMethod;
   seller: string;
+  sellerId?: string;
 };
 
 function makeId(prefix: string) {
@@ -63,10 +65,28 @@ function readStoredData() {
   if (!stored) return demoData;
 
   try {
-    return JSON.parse(stored) as AgencyData;
+    const parsed = JSON.parse(stored) as Partial<AgencyData>;
+    return {
+      ...demoData,
+      ...parsed,
+      motorcycles: parsed.motorcycles || demoData.motorcycles,
+      customers: parsed.customers || demoData.customers,
+      sales: parsed.sales || demoData.sales,
+      financings: parsed.financings || demoData.financings,
+      branches: parsed.branches || demoData.branches,
+      monthlySales: parsed.monthlySales || demoData.monthlySales,
+      financingBreakdown:
+        parsed.financingBreakdown || demoData.financingBreakdown,
+      activityLog: parsed.activityLog || demoData.activityLog,
+      lastUpdated: parsed.lastUpdated || demoData.lastUpdated,
+    } as AgencyData;
   } catch {
     return demoData;
   }
+}
+
+function activityId() {
+  return makeId("act");
 }
 
 export function useAgencyStore() {
@@ -163,6 +183,7 @@ export function useAgencyStore() {
         date: today(),
         price: motorcycle.price,
         paymentMethod: input.paymentMethod,
+        sellerId: input.sellerId,
         seller: input.seller,
         status: "Confirmada",
       };
@@ -206,12 +227,24 @@ export function useAgencyStore() {
         motorcycles,
         sales: [sale, ...currentData.sales],
         financings: [...financing, ...currentData.financings],
+        activityLog: [
+          {
+            id: activityId(),
+            type: "venta",
+            workerId: input.sellerId,
+            workerName: input.seller,
+            description: `Vendió ${motorcycle.brand} ${motorcycle.model} a ${customer.name}`,
+            amount: motorcycle.price,
+            createdAt: new Date().toISOString(),
+          },
+          ...currentData.activityLog,
+        ],
         lastUpdated: new Date().toISOString(),
       };
     });
   }, []);
 
-  const registerPayment = useCallback((financingId: string) => {
+  const registerPayment = useCallback((financingId: string, worker?: ActiveWorker) => {
     setData((currentData) => ({
       ...currentData,
       financings: currentData.financings.map((financing) => {
@@ -231,8 +264,28 @@ export function useAgencyStore() {
           nextDueDate: isFinished ? financing.nextDueDate : addDays(30),
           status: isFinished ? "Finalizada" : "Activa",
           overdueAmount: 0,
+          lastPaymentBy: worker?.name || financing.lastPaymentBy,
+          lastPaymentAt: new Date().toISOString(),
         };
       }),
+      activityLog: [
+        ...currentData.financings
+          .filter(
+            (financing) =>
+              financing.id === financingId &&
+              financing.paidInstallments < financing.installments,
+          )
+          .map((financing) => ({
+            id: activityId(),
+            type: "cobro" as const,
+            workerId: worker?.id,
+            workerName: worker?.name,
+            description: `Registró cuota de ${financing.customerName}`,
+            amount: financing.installmentAmount,
+            createdAt: new Date().toISOString(),
+          })),
+        ...currentData.activityLog,
+      ],
       lastUpdated: new Date().toISOString(),
     }));
   }, []);

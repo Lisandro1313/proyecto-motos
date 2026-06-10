@@ -11,6 +11,22 @@ npm run dev
 
 Abrí `http://localhost:3000`.
 
+## Acceso demo
+
+Administrador:
+
+- Correo: `admin@motocenter.com`
+- Contraseña: `MotoCenter2026`
+
+PINs iniciales:
+
+- Administrador: `0000`
+- Camila Ríos: `1234`
+- Matías Torres: `2468`
+- Nicolás Vega: `9876`
+
+Este login es mock local para probar el flujo. La versión productiva real debe conectar Supabase Auth o un proveedor como Clerk.
+
 ## Variables
 
 Copiá `.env.example` a `.env.local` y completá las credenciales de Supabase cuando el proyecto exista.

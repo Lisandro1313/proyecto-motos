@@ -17,6 +17,39 @@ export type SaleStatus = "Confirmada" | "Pendiente" | "Cancelada";
 
 export type FinancingStatus = "Activa" | "En mora" | "Finalizada";
 
+export type WorkerRole =
+  | "Gerencia"
+  | "Ventas"
+  | "Caja"
+  | "Administración"
+  | "Taller";
+
+export type WorkerProfile = {
+  id: string;
+  name: string;
+  role: WorkerRole;
+  pin: string;
+  branch: string;
+  color: string;
+  active: boolean;
+};
+
+export type ActiveWorker = Omit<WorkerProfile, "pin"> & {
+  startedAt: string;
+};
+
+export type ActivityType = "venta" | "cobro" | "stock" | "cliente";
+
+export type ActivityEvent = {
+  id: string;
+  type: ActivityType;
+  workerId?: string;
+  workerName?: string;
+  description: string;
+  amount?: number;
+  createdAt: string;
+};
+
 export type Motorcycle = {
   id: string;
   brand: string;
@@ -53,6 +86,7 @@ export type Sale = {
   date: string;
   price: number;
   paymentMethod: PaymentMethod;
+  sellerId?: string;
   seller: string;
   status: SaleStatus;
 };
@@ -71,6 +105,8 @@ export type Financing = {
   nextDueDate: string;
   status: FinancingStatus;
   overdueAmount: number;
+  lastPaymentBy?: string;
+  lastPaymentAt?: string;
 };
 
 export type Branch = {
@@ -103,5 +139,6 @@ export type AgencyData = {
   branches: Branch[];
   monthlySales: MonthlySale[];
   financingBreakdown: FinancingBreakdown[];
+  activityLog: ActivityEvent[];
   lastUpdated: string;
 };

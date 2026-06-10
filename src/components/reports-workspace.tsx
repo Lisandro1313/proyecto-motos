@@ -1,11 +1,13 @@
 "use client";
 
 import { AlertTriangle, BarChart3, RefreshCcw, TrendingUp } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 import { formatCurrency } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 
 export function ReportsWorkspace() {
   const { data, totals, resetData } = useAgencyStore();
+  const { profiles } = useAuth();
   const grossMargin = data.sales.reduce((total, sale) => {
     const motorcycle = data.motorcycles.find(
       (candidate) => candidate.id === sale.motorcycleId,
@@ -28,6 +30,21 @@ export function ReportsWorkspace() {
     },
     {},
   );
+  const profilePerformance = profiles.map((profile) => {
+    const profileSales = data.sales.filter(
+      (sale) => sale.sellerId === profile.id || sale.seller === profile.name,
+    );
+    const profileActivity = data.activityLog.filter(
+      (event) => event.workerId === profile.id || event.workerName === profile.name,
+    );
+
+    return {
+      profile,
+      salesCount: profileSales.length,
+      revenue: profileSales.reduce((total, sale) => total + sale.price, 0),
+      activityCount: profileActivity.length,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -141,6 +158,97 @@ export function ReportsWorkspace() {
                 </p>
               </div>
             )}
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+        <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="size-5 text-blue-600" />
+            <h2 className="text-base font-semibold text-slate-950">
+              Trabajo por perfil
+            </h2>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[680px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+                  <th className="px-3 py-3 font-semibold">Perfil</th>
+                  <th className="px-3 py-3 font-semibold">Rol</th>
+                  <th className="px-3 py-3 font-semibold">Ventas</th>
+                  <th className="px-3 py-3 font-semibold">Facturado</th>
+                  <th className="px-3 py-3 font-semibold">Actividad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {profilePerformance.map(({ profile, salesCount, revenue, activityCount }) => (
+                  <tr key={profile.id} className="border-b border-slate-100">
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="grid size-9 place-items-center rounded-lg text-xs font-bold text-white"
+                          style={{ backgroundColor: profile.color }}
+                        >
+                          {profile.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-950">
+                            {profile.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {profile.branch}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-slate-600">{profile.role}</td>
+                    <td className="px-3 py-3 font-semibold text-slate-950">
+                      {salesCount}
+                    </td>
+                    <td className="px-3 py-3 font-semibold text-emerald-600">
+                      {formatCurrency(revenue)}
+                    </td>
+                    <td className="px-3 py-3 text-slate-600">
+                      {activityCount} eventos
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">
+            Bitácora reciente
+          </h2>
+          <div className="mt-4 space-y-3">
+            {data.activityLog.slice(0, 6).map((event) => (
+              <div
+                key={event.id}
+                className="rounded-lg border border-slate-100 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-950">
+                      {event.workerName || "Sistema"}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {event.description}
+                    </p>
+                  </div>
+                  <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold uppercase text-slate-600">
+                    {event.type}
+                  </span>
+                </div>
+                {event.amount ? (
+                  <p className="mt-2 text-sm font-semibold text-emerald-600">
+                    {formatCurrency(event.amount)}
+                  </p>
+                ) : null}
+              </div>
+            ))}
           </div>
         </article>
       </section>

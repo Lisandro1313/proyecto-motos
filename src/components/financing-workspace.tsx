@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Calculator, CheckCircle2, CreditCard } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
+import { useAuth } from "@/context/auth-context";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 
@@ -10,6 +11,7 @@ const plans = [3, 6, 12, 18];
 
 export function FinancingWorkspace() {
   const { data, totals, registerPayment } = useAgencyStore();
+  const { activeProfile } = useAuth();
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState(
     data.motorcycles[0]?.id || "",
   );
@@ -143,6 +145,7 @@ export function FinancingWorkspace() {
                   <th className="px-3 py-3 font-semibold">Avance</th>
                   <th className="px-3 py-3 font-semibold">Vence</th>
                   <th className="px-3 py-3 font-semibold">Mora</th>
+                  <th className="px-3 py-3 font-semibold">Últ. cobro</th>
                   <th className="px-3 py-3 font-semibold">Estado</th>
                   <th className="px-3 py-3 font-semibold">Pago</th>
                 </tr>
@@ -186,13 +189,18 @@ export function FinancingWorkspace() {
                       <td className="px-3 py-3 font-semibold text-red-600">
                         {formatCurrency(financing.overdueAmount)}
                       </td>
+                      <td className="px-3 py-3 text-slate-600">
+                        {financing.lastPaymentBy || "-"}
+                      </td>
                       <td className="px-3 py-3">
                         <StatusBadge status={financing.status} />
                       </td>
                       <td className="px-3 py-3">
                         <button
                           type="button"
-                          onClick={() => registerPayment(financing.id)}
+                          onClick={() =>
+                            registerPayment(financing.id, activeProfile || undefined)
+                          }
                           disabled={financing.status === "Finalizada"}
                           className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
                         >
