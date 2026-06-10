@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
-import { formatCurrency, formatDate, initials } from "@/lib/format";
+import { formatCurrency, formatDate, formatMoney, initials } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 
 const SalesLineChart = dynamic(
@@ -52,28 +52,28 @@ export function DashboardHome() {
         <KpiCard
           title="Ventas del mes"
           value={formatCurrency(totals.salesTotal)}
-          change="↑ 18,6% vs. mayo"
+          change="Operación real"
           tone="blue"
           icon={<ShoppingBag className="size-6" />}
         />
         <KpiCard
           title="Motos en stock"
           value={String(totals.stockTotal)}
-          change="↑ 6 unidades"
+          change="Lista RE Motos"
           tone="green"
           icon={<Bike className="size-6" />}
         />
         <KpiCard
           title="Clientes nuevos"
           value={String(totals.customersTotal)}
-          change="↑ 12,5% vs. mayo"
+          change="Base limpia"
           tone="violet"
           icon={<Users className="size-6" />}
         />
         <KpiCard
           title="Financiaciones activas"
           value={String(totals.activeFinancings)}
-          change="↑ 9,2% vs. mayo"
+          change="Sin demo"
           tone="orange"
           icon={<CreditCard className="size-6" />}
         />
@@ -126,7 +126,7 @@ export function DashboardHome() {
                 </p>
               </div>
               <p className="text-lg font-semibold text-blue-950">
-                {formatCurrency(simulatorMotorcycle.price)}
+                {formatMoney(simulatorMotorcycle.price, simulatorMotorcycle.currency)}
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ export function DashboardHome() {
                     Tarjeta {installments}
                   </p>
                   <p className="mt-1 text-base font-semibold text-slate-950">
-                    {formatCurrency(monthly)}
+                    {formatMoney(monthly, simulatorMotorcycle.currency)}
                   </p>
                   <p className="text-xs text-slate-500">por mes</p>
                 </div>
@@ -195,7 +195,7 @@ export function DashboardHome() {
                   <StatusBadge status={motorcycle.status} />
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-950">
-                  {formatCurrency(motorcycle.price)}
+                  {formatMoney(motorcycle.price, motorcycle.currency)}
                 </p>
               </div>
             ))}
@@ -222,7 +222,7 @@ export function DashboardHome() {
                       {motorcycle.category}
                     </td>
                     <td className="px-3 py-3 text-slate-600">
-                      {formatCurrency(motorcycle.price)}
+                      {formatMoney(motorcycle.price, motorcycle.currency)}
                     </td>
                     <td className="px-3 py-3 font-semibold text-slate-950">
                       {motorcycle.stock}
@@ -260,7 +260,7 @@ export function DashboardHome() {
                   {motorcycle.brand} {motorcycle.model}
                 </p>
                 <p className="text-sm font-medium text-slate-600">
-                  {formatCurrency(motorcycle.price)}
+                  {formatMoney(motorcycle.price, motorcycle.currency)}
                 </p>
               </div>
             ))}
@@ -303,7 +303,7 @@ export function DashboardHome() {
                 </div>
                 <div className="shrink-0 text-left sm:text-right">
                   <p className="font-semibold text-emerald-600">
-                    {formatCurrency(sale.price)}
+                    {formatMoney(sale.price, sale.currency || "ARS")}
                   </p>
                   <p className="text-xs text-slate-500">{formatDate(sale.date)}</p>
                 </div>

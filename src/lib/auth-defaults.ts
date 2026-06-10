@@ -1,8 +1,8 @@
 import type { WorkerProfile } from "@/lib/types";
 
 export const adminCredentials = {
-  email: "admin@motocenter.com",
-  password: "MotoCenter2026",
+  email: "admin@remotos.com",
+  password: "REMotos2026",
 };
 
 export const defaultWorkerProfiles: WorkerProfile[] = [
@@ -10,36 +10,27 @@ export const defaultWorkerProfiles: WorkerProfile[] = [
     id: "worker-admin",
     name: "Administrador",
     role: "Gerencia",
-    pin: "0000",
-    branch: "Casa Central",
-    color: "#2563eb",
+    pin: "1234",
+    branch: "RE Motos",
+    color: "#0f2a1d",
     active: true,
   },
   {
-    id: "worker-camila",
-    name: "Camila Ríos",
+    id: "worker-manuel",
+    name: "Manuel",
     role: "Ventas",
     pin: "1234",
-    branch: "Casa Central",
-    color: "#10b981",
+    branch: "RE Motos",
+    color: "#3f6f4d",
     active: true,
   },
   {
-    id: "worker-matias",
-    name: "Matías Torres",
+    id: "worker-valentin",
+    name: "Valentin",
     role: "Ventas",
-    pin: "2468",
-    branch: "Sucursal Norte",
-    color: "#f97316",
-    active: true,
-  },
-  {
-    id: "worker-nicolas",
-    name: "Nicolás Vega",
-    role: "Caja",
-    pin: "9876",
-    branch: "Casa Central",
-    color: "#7c3aed",
+    pin: "1234",
+    branch: "RE Motos",
+    color: "#5f725e",
     active: true,
   },
 ];

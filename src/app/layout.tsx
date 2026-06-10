@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { AuthProvider } from "@/context/auth-context";
@@ -15,8 +15,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MotoCenter | Gestión de agencia",
-  description: "Panel de gestión para agencia de motos.",
+  title: "RE Motos | Gestión de agencia",
+  description: "Panel de gestión para RE Motos.",
+  applicationName: "RE Motos",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "RE Motos",
+  },
+  icons: {
+    icon: [
+      { url: "/app-icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/app-icon-192.png", sizes: "192x192" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#07111f",
 };
 
 export default function RootLayout({

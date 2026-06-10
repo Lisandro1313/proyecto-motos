@@ -4,7 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { BadgeDollarSign, Plus, Search } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { useAuth } from "@/context/auth-context";
-import { formatCurrency, formatDate, initials } from "@/lib/format";
+import { formatCurrency, formatDate, formatMoney, initials } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 import type { PaymentMethod } from "@/lib/types";
 
@@ -118,7 +118,7 @@ export function SalesWorkspace() {
                 {selectedMotorcycle.brand} {selectedMotorcycle.model}
               </p>
               <p className="mt-1 text-2xl font-semibold text-blue-950">
-                {formatCurrency(selectedMotorcycle.price)}
+                {formatMoney(selectedMotorcycle.price, selectedMotorcycle.currency)}
               </p>
               <p className="text-sm text-blue-700">
                 Stock disponible: {selectedMotorcycle.stock}
@@ -238,7 +238,7 @@ export function SalesWorkspace() {
                       Importe
                     </p>
                     <p className="font-semibold text-emerald-600">
-                      {formatCurrency(sale.price)}
+                      {formatMoney(sale.price, sale.currency || "ARS")}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-50 p-3">
@@ -312,7 +312,7 @@ export function SalesWorkspace() {
                     <td className="px-3 py-3 text-slate-600">{sale.branch}</td>
                     <td className="px-3 py-3 text-slate-600">{sale.seller}</td>
                     <td className="px-3 py-3 font-semibold text-emerald-600">
-                      {formatCurrency(sale.price)}
+                      {formatMoney(sale.price, sale.currency || "ARS")}
                     </td>
                     <td className="px-3 py-3">
                       <StatusBadge status={sale.status} />

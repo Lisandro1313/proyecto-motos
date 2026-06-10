@@ -76,7 +76,7 @@ export function BranchesWorkspace() {
                   </div>
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                     <TrendingUp className="size-3.5" />
-                    +8,4%
+                    Actualizado
                   </span>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2">
@@ -130,7 +130,7 @@ export function BranchesWorkspace() {
                     <td className="px-3 py-3">
                       <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                         <TrendingUp className="size-3.5" />
-                        +8,4%
+                        Actualizado
                       </span>
                     </td>
                   </tr>

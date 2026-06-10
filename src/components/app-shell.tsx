@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { InstallAppButton } from "@/components/install-app-button";
 import { MotoLoadingScreen } from "@/components/moto-loading-screen";
 
 const navigation = [
@@ -75,6 +76,8 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Selección por PIN y administración de subperfiles.",
   },
 };
+
+const ROUTE_LOADING_MIN_MS = 1800;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -151,7 +154,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     }, 0);
     const timeout = window.setTimeout(() => {
       setRouteLoading(false);
-    }, 820);
+    }, ROUTE_LOADING_MIN_MS);
 
     return () => {
       window.clearTimeout(showTimeout);
@@ -200,11 +203,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     () => (
       <aside className="flex h-full w-[min(18rem,calc(100vw-3rem))] flex-col border-r border-slate-900 bg-[#070b16] text-white lg:w-72">
         <div className="flex h-20 items-center gap-3 px-6">
-          <div className="grid size-11 place-items-center rounded-lg bg-blue-600">
-            <Bike className="size-6" />
+          <div className="relative size-12 overflow-hidden rounded-lg bg-[#0f2a1d]">
+            <Image
+              src="/re-motos-logo.jpeg"
+              alt="RE Motos"
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
           </div>
           <div>
-            <p className="text-xl font-semibold">MotoCenter</p>
+            <p className="text-xl font-semibold">RE Motos</p>
             <p className="text-xs uppercase text-slate-400">
               Agencia de motos
             </p>
@@ -233,22 +242,24 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+
+          <InstallAppButton className="pt-3" variant="dark" />
         </nav>
 
         <div className="px-4 pb-4">
           <div className="relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-4">
             <Image
-              src="https://images.unsplash.com/photo-1558981001-5864b3250a69?auto=format&fit=crop&w=700&q=80"
-              alt="Moto deportiva en exhibición"
+              src="/re-motos-logo.jpeg"
+              alt="Logo de RE Motos"
               fill
               sizes="260px"
-              className="object-cover opacity-35"
+              className="object-cover opacity-45"
             />
             <div className="relative min-h-36">
               <p className="max-w-36 text-2xl font-semibold leading-8">
-                Impulsamos tus sueños
+                Stock real, precios claros
               </p>
-              <p className="mt-2 text-sm text-slate-200">MotoCenter</p>
+              <p className="mt-2 text-sm text-slate-200">RE Motos</p>
             </div>
           </div>
         </div>
@@ -256,10 +267,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
             <div
-              className="grid size-11 place-items-center rounded-lg text-sm font-semibold text-white"
+              className="relative grid size-11 place-items-center overflow-hidden rounded-lg text-sm font-semibold text-white"
               style={{ backgroundColor: activeProfile?.color || "#2563eb" }}
             >
-              {activeProfile?.name.slice(0, 2).toUpperCase() || "AD"}
+              {activeProfile?.photo ? (
+                <Image
+                  src={activeProfile.photo}
+                  alt={activeProfile.name}
+                  fill
+                  sizes="44px"
+                  className="object-cover"
+                />
+              ) : (
+                activeProfile?.name.slice(0, 2).toUpperCase() || "AD"
+              )}
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">

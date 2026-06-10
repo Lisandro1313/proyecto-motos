@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import Image from "next/image";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bike,
   Eye,
   EyeOff,
   Gauge,
@@ -12,11 +12,14 @@ import {
   Quote,
   ShieldQuestion,
 } from "lucide-react";
+import { InstallAppButton } from "@/components/install-app-button";
 import { MotoAuthBackdrop } from "@/components/moto-auth-backdrop";
 import { useAuth } from "@/context/auth-context";
 import {
   pickDailyQuote,
   pickDailyTrivia,
+  pickRandomQuote,
+  pickRandomTrivia,
   type MotoQuote,
   type MotoTriviaQuestion,
 } from "@/lib/moto-culture";
@@ -28,8 +31,20 @@ export function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberSession, setRememberSession] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [trivia] = useState<MotoTriviaQuestion>(() => pickDailyTrivia());
-  const [quote] = useState<MotoQuote>(() => pickDailyQuote());
+  const [trivia, setTrivia] = useState<MotoTriviaQuestion>(() =>
+    pickDailyTrivia(),
+  );
+  const [quote, setQuote] = useState<MotoQuote>(() => pickDailyQuote());
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setTrivia((currentTrivia) => pickRandomTrivia(currentTrivia.id));
+      setQuote((currentQuote) => pickRandomQuote(currentQuote.text));
+      setSelectedAnswer("");
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,16 +75,15 @@ export function LoginScreen() {
           onSubmit={handleSubmit}
           className="w-full max-w-[430px] rounded-[22px] border border-white/55 bg-white/92 p-5 shadow-2xl shadow-slate-950/25 backdrop-blur sm:p-8"
         >
-          <div className="mx-auto flex size-24 items-center justify-center rounded-2xl bg-[#07111f] text-white shadow-lg sm:size-28">
-            <div className="text-center">
-              <Bike className="mx-auto size-9 text-blue-400" />
-              <p className="mt-2 text-lg font-semibold leading-none">
-                MotoCenter
-              </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                Garage OS
-              </p>
-            </div>
+          <div className="mx-auto overflow-hidden rounded-2xl border border-[#0f2a1d]/20 bg-[#0f2a1d] p-1 shadow-lg sm:size-28">
+            <Image
+              src="/re-motos-logo.jpeg"
+              alt="RE Motos"
+              width={112}
+              height={112}
+              priority
+              className="size-24 rounded-xl object-cover sm:size-[104px]"
+            />
           </div>
 
           <div className="mt-6 text-center">
@@ -77,7 +91,7 @@ export function LoginScreen() {
               Gestor de Agencia
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              Acceso interno para stock, ventas, cuotas y turnos.
+              Acceso interno de RE Motos para stock, ventas, cuotas y turnos.
             </p>
           </div>
 
@@ -94,7 +108,7 @@ export function LoginScreen() {
                   required
                   autoComplete="email"
                   className="w-full bg-transparent text-sm outline-none"
-                  placeholder="admin@motocenter.com"
+                  placeholder="admin@remotos.com"
                 />
               </div>
             </label>
@@ -177,6 +191,8 @@ export function LoginScreen() {
             <Gauge className="size-4" />
             Ingresar
           </button>
+
+          <InstallAppButton className="mt-3" />
 
           <div className="mt-5 rounded-lg border-l-4 border-blue-600 bg-slate-50 p-3">
             <div className="flex gap-2">

@@ -15,9 +15,9 @@ import {
 } from "@/lib/auth-defaults";
 import type { ActiveWorker, WorkerProfile, WorkerRole } from "@/lib/types";
 
-const ADMIN_SESSION_KEY = "motocenter-admin-session-v1";
-const ACTIVE_PROFILE_KEY = "motocenter-active-profile-v1";
-const WORKER_PROFILES_KEY = "motocenter-worker-profiles-v1";
+const ADMIN_SESSION_KEY = "re-motos-admin-session-v1";
+const ACTIVE_PROFILE_KEY = "re-motos-active-profile-v1";
+const WORKER_PROFILES_KEY = "re-motos-worker-profiles-v1";
 
 type AdminSession = {
   email: string;
@@ -30,6 +30,13 @@ type WorkerProfileInput = {
   branch: string;
   pin: string;
   color: string;
+  photo?: string;
+};
+
+type WorkerProfileUpdate = Partial<
+  Pick<WorkerProfile, "name" | "role" | "branch" | "pin" | "color" | "photo">
+> & {
+  active?: boolean;
 };
 
 type AuthContextValue = {
@@ -42,6 +49,7 @@ type AuthContextValue = {
   selectProfile: (profileId: string, pin: string) => boolean;
   clearActiveProfile: () => void;
   addProfile: (profile: WorkerProfileInput) => void;
+  updateProfile: (profileId: string, profile: WorkerProfileUpdate) => void;
   toggleProfile: (profileId: string) => void;
   resetProfiles: () => void;
 };
@@ -162,6 +170,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ]);
   }, []);
 
+  const updateProfile = useCallback(
+    (profileId: string, profile: WorkerProfileUpdate) => {
+      setProfiles((currentProfiles) =>
+        currentProfiles.map((currentProfile) =>
+          currentProfile.id === profileId
+            ? {
+                ...currentProfile,
+                ...profile,
+                pin: profile.pin?.trim() || currentProfile.pin,
+              }
+            : currentProfile,
+        ),
+      );
+
+      setActiveProfile((currentActiveProfile) => {
+        if (!currentActiveProfile || currentActiveProfile.id !== profileId) {
+          return currentActiveProfile;
+        }
+
+        const nextActiveProfile = {
+          ...currentActiveProfile,
+          ...profile,
+          pin: undefined,
+        };
+
+        delete nextActiveProfile.pin;
+        window.localStorage.setItem(
+          ACTIVE_PROFILE_KEY,
+          JSON.stringify(nextActiveProfile),
+        );
+        return nextActiveProfile;
+      });
+    },
+    [],
+  );
+
   const toggleProfile = useCallback((profileId: string) => {
     setProfiles((currentProfiles) =>
       currentProfiles.map((profile) =>
@@ -193,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       selectProfile,
       clearActiveProfile,
       addProfile,
+      updateProfile,
       toggleProfile,
       resetProfiles,
     }),
@@ -206,6 +251,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       selectProfile,
       clearActiveProfile,
       addProfile,
+      updateProfile,
       toggleProfile,
       resetProfiles,
     ],

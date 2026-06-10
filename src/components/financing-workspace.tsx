@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Calculator, CheckCircle2, CreditCard } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { useAuth } from "@/context/auth-context";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, formatMoney } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 
 const plans = [3, 6, 12, 18];
@@ -85,7 +85,7 @@ export function FinancingWorkspace() {
                 {selectedMotorcycle.brand} {selectedMotorcycle.model}
               </p>
               <p className="mt-1 text-2xl font-semibold text-blue-950">
-                {formatCurrency(selectedMotorcycle.price)}
+                {formatMoney(selectedMotorcycle.price, selectedMotorcycle.currency)}
               </p>
               <p className="text-sm text-blue-700">Entrega sugerida 20%</p>
             </div>
@@ -96,7 +96,10 @@ export function FinancingWorkspace() {
               ? plans.map((installments) => {
                   const downPayment = Math.round(selectedMotorcycle.price * 0.2);
                   const financedAmount = selectedMotorcycle.price - downPayment;
-                  const monthly = Math.round(financedAmount / installments);
+                  const monthly =
+                    selectedMotorcycle.cardInstallments?.[
+                      installments as 3 | 6 | 12 | 18
+                    ] || Math.round(financedAmount / installments);
 
                   return (
                     <div
@@ -110,10 +113,17 @@ export function FinancingWorkspace() {
                         <CreditCard className="size-4 text-blue-600" />
                       </div>
                       <p className="mt-2 text-xl font-semibold text-slate-950">
-                        {formatCurrency(monthly)}
+                        {formatMoney(monthly, selectedMotorcycle.currency)}
                       </p>
                       <p className="text-xs text-slate-500">
-                        Entrega {formatCurrency(downPayment)}
+                        {selectedMotorcycle.cardInstallments?.[
+                          installments as 3 | 6 | 12 | 18
+                        ]
+                          ? "Cuota segun lista PDF"
+                          : `Entrega ${formatMoney(
+                              downPayment,
+                              selectedMotorcycle.currency,
+                            )}`}
                       </p>
                     </div>
                   );

@@ -24,6 +24,8 @@ export type WorkerRole =
   | "Administración"
   | "Taller";
 
+export type Currency = "ARS" | "USD";
+
 export type WorkerProfile = {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ export type WorkerProfile = {
   pin: string;
   branch: string;
   color: string;
+  photo?: string;
   active: boolean;
 };
 
@@ -38,7 +41,13 @@ export type ActiveWorker = Omit<WorkerProfile, "pin"> & {
   startedAt: string;
 };
 
-export type ActivityType = "venta" | "cobro" | "stock" | "cliente";
+export type ActivityType =
+  | "venta"
+  | "cobro"
+  | "stock"
+  | "cliente"
+  | "precio"
+  | "perfil";
 
 export type ActivityEvent = {
   id: string;
@@ -47,6 +56,7 @@ export type ActivityEvent = {
   workerName?: string;
   description: string;
   amount?: number;
+  currency?: Currency;
   createdAt: string;
 };
 
@@ -56,11 +66,15 @@ export type Motorcycle = {
   model: string;
   category: string;
   price: number;
+  currency: Currency;
   cost: number;
   stock: number;
   branch: string;
   status: MotorcycleStatus;
   image: string;
+  cardInstallments?: Partial<Record<3 | 6 | 12 | 18, number>>;
+  updatedAt?: string;
+  notes?: string;
 };
 
 export type Customer = {
@@ -85,6 +99,7 @@ export type Sale = {
   branch: string;
   date: string;
   price: number;
+  currency?: Currency;
   paymentMethod: PaymentMethod;
   sellerId?: string;
   seller: string;

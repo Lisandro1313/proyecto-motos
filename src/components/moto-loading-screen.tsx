@@ -84,7 +84,7 @@ export function MotoLoadingScreen({
         </div>
 
         <div className="mx-auto mt-4 h-1.5 w-full max-w-64 overflow-hidden rounded-full bg-slate-200">
-          <div className="h-full w-2/3 origin-left rounded-full bg-blue-600 animate-[moto-loading-progress_1.5s_ease-in-out_infinite]" />
+          <div className="h-full w-2/3 origin-left rounded-full bg-blue-600 animate-[moto-loading-progress_1.8s_ease-in-out_infinite]" />
         </div>
 
         <div className="mt-6 rounded-xl border-l-4 border-blue-600 bg-slate-50 p-4 text-left">

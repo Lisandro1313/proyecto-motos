@@ -1,24 +1,22 @@
-# MotoCenter - Arquitectura
+# RE Motos - Arquitectura
 
 ## Stack
 
 - Frontend: Next.js App Router, TypeScript y Tailwind CSS.
 - Deploy: Vercel.
-- Base de datos futura: Supabase Postgres.
-- Auth futura: Supabase Auth o Clerk.
-- Backend extra: no hace falta Render para este MVP.
+- Persistencia actual: localStorage con backup/importacion JSON.
+- Proxima persistencia: Supabase Postgres + Storage.
 
 ## Modulos
 
-- Dashboard: metricas generales, ventas mensuales, stock, ventas recientes y sucursales.
-- Inventario: alta de motos, precio, costo, sucursal, imagen, stock y ajustes.
-- Clientes: ficha comercial, DNI, contacto, saldo, estado y vencimiento.
-- Ventas: registro de operacion por perfil activo, forma de pago y descuento de stock.
-- Financiacion: simulador de cuotas, contratos activos, mora y registro de pagos.
-- Sucursales: performance por local, stock y ventas.
-- Reportes: margen, mora, alertas de stock, trabajo por perfil y bitacora.
-- Login: acceso administrador por correo y contrasena.
-- Perfiles: seleccion de trabajador por PIN, inicio de turno y alta de subperfiles.
+- Dashboard: metricas reales desde ventas, stock y financiacion.
+- Inventario: alta de motos, foto, moneda, precio, costo, ingreso de unidades y auditoria de cambios.
+- Clientes: ficha comercial y estado de cuenta.
+- Ventas: registro por perfil activo y descuento automatico de stock.
+- Financiacion: simulador por planes y cobros de cuotas.
+- Reportes: margen, mora, alertas, trabajo por perfil, bitacora y backup/importacion.
+- Login: acceso administrador mock local.
+- Perfiles: Administrador, Manuel y Valentin, con PIN y foto editables.
 
 ## Flujo de acceso
 
@@ -26,35 +24,23 @@
 2. La app redirige a `/perfiles`.
 3. Un trabajador elige su perfil e ingresa PIN.
 4. El panel queda habilitado con ese perfil activo.
-5. Las ventas y cobros se registran con ese trabajador.
+5. Las ventas, cobros, ingresos de stock y cambios de precio quedan registrados en bitacora.
 
-## Supabase
+## Datos productivos iniciales
 
-1. Crear un proyecto en Supabase.
-2. Abrir SQL Editor.
-3. Ejecutar `supabase/schema.sql`.
-4. Ejecutar `supabase/seed.sql` si queres datos iniciales.
-5. Copiar `Project URL` y `anon public key`.
-6. Crear `.env.local` desde `.env.example`.
-
-Variables:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
-```
-
-## Seguridad
-
-El login actual es local/mock para validar experiencia en produccion sin bloquear el avance. La version real debe llevar administrador y subperfiles a Supabase Auth mas tablas internas para perfiles, PIN hasheado, turnos y bitacora.
-
-El SQL deja Row Level Security activo y permite gestion solo a usuarios autenticados. Para produccion conviene reforzar roles por vendedor/gerente y auditoria de cambios.
+- Marca: RE Motos.
+- Logo: `public/re-motos-logo.jpeg`.
+- Lista de precios: importada desde el PDF entregado el 10/06/2026.
+- Perfiles: Administrador, Manuel y Valentin, todos con PIN inicial `1234`.
+- Ventas, clientes y financiaciones: base limpia, sin datos demo.
 
 ## Deploy
 
 1. Subir el repo a GitHub.
 2. Importarlo en Vercel.
-3. Agregar las mismas variables de `.env.local`.
-4. Deployar.
+3. Deployar.
+4. En cada dispositivo, usar el boton `Instalar aplicacion`.
 
-Render solo seria necesario si despues se agrega un servicio externo pesado, por ejemplo integracion con AFIP, facturacion, webhooks complejos, jobs programados o scraping de listas de precios.
+## Seguridad
+
+El login actual sigue siendo local/mock para acelerar la salida productiva inicial. Para produccion multiusuario real conviene mover auth, perfiles, PIN hasheado, fotos, stock y bitacora a Supabase.

@@ -5,6 +5,7 @@ import { demoData } from "@/lib/demo-data";
 import type {
   ActiveWorker,
   AgencyData,
+  Currency,
   Customer,
   Motorcycle,
   MotorcycleStatus,
@@ -12,7 +13,8 @@ import type {
   Sale,
 } from "@/lib/types";
 
-const STORAGE_KEY = "motocenter-agency-data-v1";
+const STORAGE_KEY = "re-motos-agency-data-v1";
+const DEFAULT_MOTORCYCLE_IMAGE = "/re-motos-logo.jpeg";
 
 type CustomerInput = Pick<
   Customer,
@@ -21,9 +23,38 @@ type CustomerInput = Pick<
 
 type MotorcycleInput = Pick<
   Motorcycle,
-  "brand" | "model" | "category" | "price" | "cost" | "stock" | "branch"
+  | "brand"
+  | "model"
+  | "category"
+  | "price"
+  | "currency"
+  | "cost"
+  | "stock"
+  | "branch"
 > & {
   image?: string;
+  cardInstallments?: Motorcycle["cardInstallments"];
+  notes?: string;
+};
+
+type StockReceiptInput = {
+  motorcycleId: string;
+  quantity: number;
+  cost?: number;
+  price?: number;
+  currency?: Currency;
+  image?: string;
+  note?: string;
+  worker?: ActiveWorker;
+};
+
+type MotorcyclePricingInput = {
+  motorcycleId: string;
+  price: number;
+  cost: number;
+  currency: Currency;
+  note?: string;
+  worker?: ActiveWorker;
 };
 
 type SaleInput = {
@@ -62,14 +93,42 @@ function isRecord(value: unknown): value is Partial<AgencyData> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function normalizeMotorcycle(motorcycle: Motorcycle): Motorcycle {
+  const stock = Number(motorcycle.stock || 0);
+
+  return {
+    ...motorcycle,
+    price: Number(motorcycle.price || 0),
+    currency: motorcycle.currency || "ARS",
+    cost: Number(motorcycle.cost || 0),
+    stock,
+    status: motorcycle.status || statusFromStock(stock),
+    image: motorcycle.image || DEFAULT_MOTORCYCLE_IMAGE,
+  };
+}
+
+function withSyncedBranchStock(data: AgencyData): AgencyData {
+  return {
+    ...data,
+    branches: data.branches.map((branch) => ({
+      ...branch,
+      stock: data.motorcycles
+        .filter((motorcycle) => motorcycle.branch === branch.name)
+        .reduce((total, motorcycle) => total + motorcycle.stock, 0),
+    })),
+  };
+}
+
 function normalizeAgencyData(input: unknown): AgencyData {
   const candidate = isRecord(input) ? input : {};
 
-  return {
+  const normalizedData = {
     ...demoData,
     ...candidate,
     motorcycles: Array.isArray(candidate.motorcycles)
-      ? candidate.motorcycles
+      ? candidate.motorcycles.map((motorcycle) =>
+          normalizeMotorcycle(motorcycle as Motorcycle),
+        )
       : demoData.motorcycles,
     customers: Array.isArray(candidate.customers)
       ? candidate.customers
@@ -96,6 +155,8 @@ function normalizeAgencyData(input: unknown): AgencyData {
         ? candidate.lastUpdated
         : new Date().toISOString(),
   };
+
+  return withSyncedBranchStock(normalizedData);
 }
 
 function readStoredData() {
@@ -151,41 +212,171 @@ export function useAgencyStore() {
   }, []);
 
   const addMotorcycle = useCallback((input: MotorcycleInput) => {
-    setData((currentData) => ({
-      ...currentData,
-      motorcycles: [
-        {
-          id: makeId("moto"),
-          ...input,
-          status: statusFromStock(Number(input.stock)),
-          image:
-            input.image ||
-            "https://images.unsplash.com/photo-1558980394-4c7c9299fe96?auto=format&fit=crop&w=900&q=80",
-        },
-        ...currentData.motorcycles,
-      ],
-      lastUpdated: new Date().toISOString(),
-    }));
+    setData((currentData) => {
+      const now = new Date().toISOString();
+      const motorcycle: Motorcycle = {
+        id: makeId("moto"),
+        ...input,
+        price: Number(input.price || 0),
+        currency: input.currency || "ARS",
+        cost: Number(input.cost || 0),
+        stock: Number(input.stock || 0),
+        status: statusFromStock(Number(input.stock)),
+        image: input.image || DEFAULT_MOTORCYCLE_IMAGE,
+        updatedAt: now,
+      };
+
+      return withSyncedBranchStock({
+        ...currentData,
+        motorcycles: [motorcycle, ...currentData.motorcycles],
+        activityLog: [
+          {
+            id: activityId(),
+            type: "stock",
+            workerName: "Sistema",
+            description: `Alta de modelo ${motorcycle.brand} ${motorcycle.model} con ${motorcycle.stock} unidades.`,
+            createdAt: now,
+          },
+          ...currentData.activityLog,
+        ],
+        lastUpdated: now,
+      });
+    });
   }, []);
 
   const adjustMotorcycleStock = useCallback(
-    (motorcycleId: string, amount: number) => {
-      setData((currentData) => ({
-        ...currentData,
-        motorcycles: currentData.motorcycles.map((motorcycle) => {
+    (motorcycleId: string, amount: number, worker?: ActiveWorker) => {
+      setData((currentData) => {
+        const now = new Date().toISOString();
+        const target = currentData.motorcycles.find(
+          (motorcycle) => motorcycle.id === motorcycleId,
+        );
+        if (!target || amount === 0) return currentData;
+
+        const motorcycles = currentData.motorcycles.map((motorcycle) => {
           if (motorcycle.id !== motorcycleId) return motorcycle;
           const stock = Math.max(0, motorcycle.stock + amount);
           return {
             ...motorcycle,
             stock,
             status: statusFromStock(stock),
+            updatedAt: now,
           };
-        }),
-        lastUpdated: new Date().toISOString(),
-      }));
+        });
+
+        return withSyncedBranchStock({
+          ...currentData,
+          motorcycles,
+          activityLog: [
+            {
+              id: activityId(),
+              type: "stock",
+              workerId: worker?.id,
+              workerName: worker?.name || "Sistema",
+              description: `${amount > 0 ? "Ingreso" : "Egreso"} manual de ${Math.abs(
+                amount,
+              )} unidad(es) en ${target.brand} ${target.model}.`,
+              createdAt: now,
+            },
+            ...currentData.activityLog,
+          ],
+          lastUpdated: now,
+        });
+      });
     },
     [],
   );
+
+  const receiveMotorcycleStock = useCallback((input: StockReceiptInput) => {
+    setData((currentData) => {
+      const now = new Date().toISOString();
+      const target = currentData.motorcycles.find(
+        (motorcycle) => motorcycle.id === input.motorcycleId,
+      );
+      if (!target || input.quantity <= 0) return currentData;
+
+      const motorcycles = currentData.motorcycles.map((motorcycle) => {
+        if (motorcycle.id !== input.motorcycleId) return motorcycle;
+        const stock = motorcycle.stock + input.quantity;
+        return {
+          ...motorcycle,
+          stock,
+          cost:
+            typeof input.cost === "number" && input.cost >= 0
+              ? input.cost
+              : motorcycle.cost,
+          price:
+            typeof input.price === "number" && input.price > 0
+              ? input.price
+              : motorcycle.price,
+          currency: input.currency || motorcycle.currency,
+          image: input.image || motorcycle.image,
+          status: statusFromStock(stock),
+          notes: input.note || motorcycle.notes,
+          updatedAt: now,
+        };
+      });
+
+      return withSyncedBranchStock({
+        ...currentData,
+        motorcycles,
+        activityLog: [
+          {
+            id: activityId(),
+            type: "stock",
+            workerId: input.worker?.id,
+            workerName: input.worker?.name || "Sistema",
+            description: `Ingreso de ${input.quantity} unidad(es) para ${target.brand} ${target.model}.`,
+            amount: input.cost,
+            currency: input.currency || target.currency,
+            createdAt: now,
+          },
+          ...currentData.activityLog,
+        ],
+        lastUpdated: now,
+      });
+    });
+  }, []);
+
+  const updateMotorcyclePricing = useCallback((input: MotorcyclePricingInput) => {
+    setData((currentData) => {
+      const now = new Date().toISOString();
+      const target = currentData.motorcycles.find(
+        (motorcycle) => motorcycle.id === input.motorcycleId,
+      );
+      if (!target) return currentData;
+
+      return {
+        ...currentData,
+        motorcycles: currentData.motorcycles.map((motorcycle) =>
+          motorcycle.id === input.motorcycleId
+            ? {
+                ...motorcycle,
+                price: input.price,
+                cost: input.cost,
+                currency: input.currency,
+                notes: input.note || motorcycle.notes,
+                updatedAt: now,
+              }
+            : motorcycle,
+        ),
+        activityLog: [
+          {
+            id: activityId(),
+            type: "precio",
+            workerId: input.worker?.id,
+            workerName: input.worker?.name || "Sistema",
+            description: `Actualizo precio/costo de ${target.brand} ${target.model}.`,
+            amount: input.price,
+            currency: input.currency,
+            createdAt: now,
+          },
+          ...currentData.activityLog,
+        ],
+        lastUpdated: now,
+      };
+    });
+  }, []);
 
   const registerSale = useCallback((input: SaleInput) => {
     setData((currentData) => {
@@ -208,6 +399,7 @@ export function useAgencyStore() {
         branch: input.branch,
         date: today(),
         price: motorcycle.price,
+        currency: motorcycle.currency,
         paymentMethod: input.paymentMethod,
         sellerId: input.sellerId,
         seller: input.seller,
@@ -218,7 +410,7 @@ export function useAgencyStore() {
       const financedAmount = motorcycle.price - downPayment;
       const installmentAmount = Math.round(financedAmount / 12);
       const financing =
-        input.paymentMethod === "Financiación"
+        input.paymentMethod === "Financiación" && motorcycle.currency === "ARS"
           ? [
               {
                 id: makeId("fin"),
@@ -245,10 +437,11 @@ export function useAgencyStore() {
           ...candidate,
           stock,
           status: statusFromStock(stock),
+          updatedAt: new Date().toISOString(),
         };
       });
 
-      return {
+      return withSyncedBranchStock({
         ...currentData,
         motorcycles,
         sales: [sale, ...currentData.sales],
@@ -261,12 +454,13 @@ export function useAgencyStore() {
             workerName: input.seller,
             description: `Vendió ${motorcycle.brand} ${motorcycle.model} a ${customer.name}`,
             amount: motorcycle.price,
+            currency: motorcycle.currency,
             createdAt: new Date().toISOString(),
           },
           ...currentData.activityLog,
         ],
         lastUpdated: new Date().toISOString(),
-      };
+      });
     });
   }, []);
 
@@ -308,6 +502,7 @@ export function useAgencyStore() {
             workerName: worker?.name,
             description: `Registró cuota de ${financing.customerName}`,
             amount: financing.installmentAmount,
+            currency: "ARS" as const,
             createdAt: new Date().toISOString(),
           })),
         ...currentData.activityLog,
@@ -331,7 +526,10 @@ export function useAgencyStore() {
   }, []);
 
   const totals = useMemo(() => {
-    const salesTotal = data.sales.reduce((total, sale) => total + sale.price, 0);
+    const salesTotal = data.sales.reduce(
+      (total, sale) => total + (sale.currency === "USD" ? 0 : sale.price),
+      0,
+    );
     const stockTotal = data.motorcycles.reduce(
       (total, motorcycle) => total + motorcycle.stock,
       0,
@@ -343,10 +541,24 @@ export function useAgencyStore() {
       (total, financing) => total + financing.overdueAmount,
       0,
     );
+    const stockValueArs = data.motorcycles.reduce(
+      (total, motorcycle) =>
+        total +
+        (motorcycle.currency === "USD" ? 0 : motorcycle.price * motorcycle.stock),
+      0,
+    );
+    const stockValueUsd = data.motorcycles.reduce(
+      (total, motorcycle) =>
+        total +
+        (motorcycle.currency === "USD" ? motorcycle.price * motorcycle.stock : 0),
+      0,
+    );
 
     return {
       salesTotal,
       stockTotal,
+      stockValueArs,
+      stockValueUsd,
       activeFinancings,
       overdueTotal,
       customersTotal: data.customers.length,
@@ -360,6 +572,8 @@ export function useAgencyStore() {
     addCustomer,
     addMotorcycle,
     adjustMotorcycleStock,
+    receiveMotorcycleStock,
+    updateMotorcyclePricing,
     registerSale,
     registerPayment,
     resetData,

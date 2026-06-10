@@ -11,7 +11,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatMoney } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 
 export function ReportsWorkspace() {
@@ -19,6 +19,7 @@ export function ReportsWorkspace() {
   const { profiles } = useAuth();
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const grossMargin = data.sales.reduce((total, sale) => {
+    if (sale.currency === "USD") return total;
     const motorcycle = data.motorcycles.find(
       (candidate) => candidate.id === sale.motorcycleId,
     );
@@ -35,6 +36,7 @@ export function ReportsWorkspace() {
 
   const sellerPerformance = data.sales.reduce<Record<string, number>>(
     (report, sale) => {
+      if (sale.currency === "USD") return report;
       report[sale.seller] = (report[sale.seller] || 0) + sale.price;
       return report;
     },
@@ -51,7 +53,10 @@ export function ReportsWorkspace() {
     return {
       profile,
       salesCount: profileSales.length,
-      revenue: profileSales.reduce((total, sale) => total + sale.price, 0),
+      revenue: profileSales.reduce(
+        (total, sale) => total + (sale.currency === "USD" ? 0 : sale.price),
+        0,
+      ),
       activityCount: profileActivity.length,
     };
   });
@@ -63,7 +68,7 @@ export function ReportsWorkspace() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `motocenter-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `re-motos-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
     setMaintenanceMessage("Backup descargado correctamente.");
@@ -334,7 +339,7 @@ export function ReportsWorkspace() {
                 </div>
                 {event.amount ? (
                   <p className="mt-2 text-sm font-semibold text-emerald-600">
-                    {formatCurrency(event.amount)}
+                    {formatMoney(event.amount, event.currency || "ARS")}
                   </p>
                 ) : null}
               </div>
