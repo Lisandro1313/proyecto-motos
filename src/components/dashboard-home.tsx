@@ -356,14 +356,13 @@ export function DashboardHome() {
         </article>
       </section>
 
-      <button
-        type="button"
-        onClick={() => alert("Datos guardados localmente. Con Supabase activo, este botón puede sincronizar la base.")}
+      <Link
+        href="/reportes"
         className="fixed bottom-5 right-5 hidden items-center gap-2 rounded-lg bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-xl hover:bg-slate-800 lg:inline-flex"
       >
         <DollarSign className="size-4" />
         Cierre del día
-      </button>
+      </Link>
     </div>
   );
 }

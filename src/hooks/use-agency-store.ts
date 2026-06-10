@@ -58,6 +58,46 @@ function statusFromStock(stock: number): MotorcycleStatus {
   return "Disponible";
 }
 
+function isRecord(value: unknown): value is Partial<AgencyData> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeAgencyData(input: unknown): AgencyData {
+  const candidate = isRecord(input) ? input : {};
+
+  return {
+    ...demoData,
+    ...candidate,
+    motorcycles: Array.isArray(candidate.motorcycles)
+      ? candidate.motorcycles
+      : demoData.motorcycles,
+    customers: Array.isArray(candidate.customers)
+      ? candidate.customers
+      : demoData.customers,
+    sales: Array.isArray(candidate.sales) ? candidate.sales : demoData.sales,
+    financings: Array.isArray(candidate.financings)
+      ? candidate.financings
+      : demoData.financings,
+    branches: Array.isArray(candidate.branches)
+      ? candidate.branches
+      : demoData.branches,
+    monthlySales: Array.isArray(candidate.monthlySales)
+      ? candidate.monthlySales
+      : demoData.monthlySales,
+    financingBreakdown:
+      Array.isArray(candidate.financingBreakdown)
+        ? candidate.financingBreakdown
+        : demoData.financingBreakdown,
+    activityLog: Array.isArray(candidate.activityLog)
+      ? candidate.activityLog
+      : demoData.activityLog,
+    lastUpdated:
+      typeof candidate.lastUpdated === "string"
+        ? candidate.lastUpdated
+        : new Date().toISOString(),
+  };
+}
+
 function readStoredData() {
   if (typeof window === "undefined") return demoData;
 
@@ -65,21 +105,7 @@ function readStoredData() {
   if (!stored) return demoData;
 
   try {
-    const parsed = JSON.parse(stored) as Partial<AgencyData>;
-    return {
-      ...demoData,
-      ...parsed,
-      motorcycles: parsed.motorcycles || demoData.motorcycles,
-      customers: parsed.customers || demoData.customers,
-      sales: parsed.sales || demoData.sales,
-      financings: parsed.financings || demoData.financings,
-      branches: parsed.branches || demoData.branches,
-      monthlySales: parsed.monthlySales || demoData.monthlySales,
-      financingBreakdown:
-        parsed.financingBreakdown || demoData.financingBreakdown,
-      activityLog: parsed.activityLog || demoData.activityLog,
-      lastUpdated: parsed.lastUpdated || demoData.lastUpdated,
-    } as AgencyData;
+    return normalizeAgencyData(JSON.parse(stored));
   } catch {
     return demoData;
   }
@@ -295,6 +321,15 @@ export function useAgencyStore() {
     window.localStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  const importData = useCallback((input: unknown) => {
+    const importedData = normalizeAgencyData(input);
+
+    setData({
+      ...importedData,
+      lastUpdated: new Date().toISOString(),
+    });
+  }, []);
+
   const totals = useMemo(() => {
     const salesTotal = data.sales.reduce((total, sale) => total + sale.price, 0);
     const stockTotal = data.motorcycles.reduce(
@@ -328,5 +363,6 @@ export function useAgencyStore() {
     registerSale,
     registerPayment,
     resetData,
+    importData,
   };
 }

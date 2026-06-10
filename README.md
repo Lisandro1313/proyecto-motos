@@ -38,6 +38,12 @@ Los scripts están en:
 - `supabase/schema.sql`
 - `supabase/seed.sql`
 
+## Mantenimiento
+
+Desde `Reportes > Mantenimiento de datos` se puede descargar un backup JSON, importar un backup compatible y restaurar datos base.
+
+Para migrar la información real desde Drive, ver `docs/DATA_MIGRATION.md`.
+
 ## Deploy
 
 El proyecto está preparado para Vercel. No necesita Render en esta etapa porque Next.js y Supabase cubren frontend, server runtime, base de datos y auth.
