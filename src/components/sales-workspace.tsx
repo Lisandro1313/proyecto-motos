@@ -51,6 +51,7 @@ export function SalesWorkspace() {
       seller: activeProfile.name,
       sellerId: activeProfile.id,
       installments: paymentMethod === "Financiación" ? installments : undefined,
+      date: String(formData.get("date") || "") || undefined,
     });
 
     event.currentTarget.reset();
@@ -129,6 +130,22 @@ export function SalesWorkspace() {
               </p>
             </div>
           ) : null}
+
+          <label className="block space-y-1.5">
+            <span className="text-xs font-semibold uppercase text-slate-500">
+              Fecha de la venta
+            </span>
+            <input
+              name="date"
+              type="date"
+              defaultValue={new Date().toISOString().slice(0, 10)}
+              max={new Date().toISOString().slice(0, 10)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            />
+            <span className="text-xs text-slate-400">
+              Para cargar ventas viejas, poné la fecha real.
+            </span>
+          </label>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             <label className="space-y-1.5">

@@ -96,14 +96,15 @@ type SaleInput = {
   seller: string;
   sellerId?: string;
   installments?: number;
+  date?: string;
 };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function addDays(days: number) {
-  const date = new Date();
+function addDays(days: number, base?: string) {
+  const date = base ? new Date(`${base}T00:00:00`) : new Date();
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
 }
@@ -427,6 +428,7 @@ export function useAgencyStore() {
       if (!customer || !motorcycle || motorcycle.stock <= 0) return;
 
       const now = new Date().toISOString();
+      const saleDate = input.date || today();
       const batch = writeBatch(db);
       const saleRef = doc(collection(db, "sales"));
 
@@ -436,7 +438,7 @@ export function useAgencyStore() {
         motorcycleId: motorcycle.id,
         motorcycleModel: `${motorcycle.brand} ${motorcycle.model}`,
         branch: input.branch,
-        date: today(),
+        date: saleDate,
         price: motorcycle.price,
         currency: motorcycle.currency,
         paymentMethod: input.paymentMethod,
@@ -480,7 +482,7 @@ export function useAgencyStore() {
           installments,
           installmentAmount,
           paidInstallments: 0,
-          nextDueDate: addDays(30),
+          nextDueDate: addDays(30, saleDate),
           status: "Activa",
           overdueAmount: 0,
         };
