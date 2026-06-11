@@ -6,7 +6,7 @@ import { Minus, Plus, Save, Search } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { useAuth } from "@/context/auth-context";
 import { useAgencyStore } from "@/hooks/use-agency-store";
-import { readFileAsDataUrl } from "@/lib/file-utils";
+import { readImageAsResizedDataUrl } from "@/lib/file-utils";
 import { formatMoney } from "@/lib/format";
 import type { Currency } from "@/lib/types";
 
@@ -52,7 +52,7 @@ export function InventoryWorkspace() {
   ) {
     const file = event.currentTarget.files?.[0];
     if (!file) return;
-    setter(await readFileAsDataUrl(file));
+    setter(await readImageAsResizedDataUrl(file));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
