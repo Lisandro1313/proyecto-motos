@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type KpiCardProps = {
   title: string;
   value: string;
-  change: string;
+  change?: string;
   tone: "blue" | "green" | "violet" | "orange";
   icon: ReactNode;
 };
@@ -29,7 +29,9 @@ export function KpiCard({ title, value, change, tone, icon }: KpiCardProps) {
           <p className="mt-1 break-words text-xl font-semibold text-slate-950 sm:text-2xl">
             {value}
           </p>
-          <p className="mt-1 text-sm font-medium text-emerald-600">{change}</p>
+          {change ? (
+            <p className="mt-1 text-sm font-medium text-emerald-600">{change}</p>
+          ) : null}
         </div>
       </div>
     </article>

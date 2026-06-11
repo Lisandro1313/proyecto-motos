@@ -3,24 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
-  Bell,
   Bike,
   Building2,
   CreditCard,
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageSquare,
   Search,
   ShoppingCart,
   UserRoundCog,
@@ -30,6 +21,7 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { InstallAppButton } from "@/components/install-app-button";
 import { MotoLoadingScreen } from "@/components/moto-loading-screen";
+import { ProfileSettingsModal } from "@/components/profile-settings-modal";
 
 const navigation = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -77,14 +69,11 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-const ROUTE_LOADING_MIN_MS = 1800;
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [routeLoading, setRouteLoading] = useState(false);
-  const previousPathname = useRef(pathname);
+  const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const {
     ready,
     adminSession,
@@ -96,71 +85,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isProfilesRoute = pathname === "/perfiles";
   const isAuthRoute = isLoginRoute || isProfilesRoute;
   const currentPage = pageTitles[pathname] || pageTitles["/"];
-
-  useEffect(() => {
-    function handleInternalNavigation(event: MouseEvent) {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const anchor = target.closest("a[href]");
-      if (!(anchor instanceof HTMLAnchorElement)) return;
-
-      const destination = new URL(anchor.href);
-      const currentUrl = new URL(window.location.href);
-
-      if (
-        destination.origin !== currentUrl.origin ||
-        destination.pathname === currentUrl.pathname
-      ) {
-        return;
-      }
-
-      setRouteLoading(true);
-    }
-
-    document.addEventListener("click", handleInternalNavigation);
-
-    return () => {
-      document.removeEventListener("click", handleInternalNavigation);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (previousPathname.current === pathname) return;
-
-    previousPathname.current = pathname;
-
-    if (!ready || isAuthRoute) {
-      const timeout = window.setTimeout(() => {
-        setRouteLoading(false);
-      }, 0);
-
-      return () => window.clearTimeout(timeout);
-    }
-
-    const showTimeout = window.setTimeout(() => {
-      setRouteLoading(true);
-    }, 0);
-    const timeout = window.setTimeout(() => {
-      setRouteLoading(false);
-    }, ROUTE_LOADING_MIN_MS);
-
-    return () => {
-      window.clearTimeout(showTimeout);
-      window.clearTimeout(timeout);
-    };
-  }, [isAuthRoute, pathname, ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -329,8 +253,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-950">
-      {routeLoading ? <MotoLoadingScreen mode="overlay" /> : null}
-
       <div className="fixed inset-y-0 left-0 z-30 hidden lg:block">{sidebar}</div>
 
       {mobileOpen ? (
@@ -378,37 +300,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <button
               type="button"
-              onClick={switchProfile}
-              className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 md:inline-flex"
+              onClick={() => setProfileSettingsOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <UserRoundCog className="size-4" />
-              {activeProfile?.name}
-            </button>
-
-            <button
-              type="button"
-              aria-label="Notificaciones"
-              className="relative grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700"
-            >
-              <Bell className="size-5" />
-              <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                3
-              </span>
-            </button>
-
-            <button
-              type="button"
-              aria-label="Mensajes"
-              className="hidden size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 sm:grid"
-            >
-              <MessageSquare className="size-5" />
+              <span className="hidden sm:inline">{activeProfile?.name}</span>
             </button>
 
             <button
               type="button"
               aria-label="Salir"
               onClick={closeSession}
-              className="hidden size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:grid"
+              className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
             >
               <LogOut className="size-5" />
             </button>
@@ -419,6 +322,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      <ProfileSettingsModal
+        open={profileSettingsOpen}
+        onClose={() => setProfileSettingsOpen(false)}
+      />
     </div>
   );
 }

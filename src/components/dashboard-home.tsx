@@ -3,14 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import {
-  Bike,
-  CreditCard,
-  DollarSign,
-  MapPin,
-  ShoppingBag,
-  Users,
-} from "lucide-react";
+import { Bike, CreditCard, MapPin, ShoppingBag, Users } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
 import { formatCurrency, formatDate, formatMoney, initials } from "@/lib/format";
@@ -52,28 +45,24 @@ export function DashboardHome() {
         <KpiCard
           title="Ventas del mes"
           value={formatCurrency(totals.salesTotal)}
-          change="Operación real"
           tone="blue"
           icon={<ShoppingBag className="size-6" />}
         />
         <KpiCard
           title="Motos en stock"
           value={String(totals.stockTotal)}
-          change="Lista RE Motos"
           tone="green"
           icon={<Bike className="size-6" />}
         />
         <KpiCard
           title="Clientes nuevos"
           value={String(totals.customersTotal)}
-          change="Base limpia"
           tone="violet"
           icon={<Users className="size-6" />}
         />
         <KpiCard
           title="Financiaciones activas"
           value={String(totals.activeFinancings)}
-          change="Sin demo"
           tone="orange"
           icon={<CreditCard className="size-6" />}
         />
@@ -364,14 +353,6 @@ export function DashboardHome() {
           </div>
         </article>
       </section>
-
-      <Link
-        href="/reportes"
-        className="fixed bottom-5 right-5 hidden items-center gap-2 rounded-lg bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-xl hover:bg-slate-800 lg:inline-flex"
-      >
-        <DollarSign className="size-4" />
-        Cierre del día
-      </Link>
     </div>
   );
 }
