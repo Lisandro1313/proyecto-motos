@@ -30,11 +30,17 @@ export function formatPercent(value: number) {
 }
 
 export function formatDate(value: string) {
+  if (!value) return "";
+  // Acepta fecha sola ("2026-06-11") o timestamp ISO completo.
+  const date = value.includes("T")
+    ? new Date(value)
+    : new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(date);
 }
 
 export function initials(name: string) {

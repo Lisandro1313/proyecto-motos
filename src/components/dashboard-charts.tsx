@@ -16,8 +16,8 @@ import type { FinancingBreakdown, MonthlySale } from "@/lib/types";
 
 export function SalesLineChart({ data }: { data: MonthlySale[] }) {
   return (
-    <div className="h-72 w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full">
+      <ResponsiveContainer width="100%" height={288} minWidth={0}>
         <AreaChart data={data} margin={{ left: 0, right: 12, top: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="salesFill" x1="0" x2="0" y1="0" y2="1">
@@ -65,7 +65,7 @@ export function FinancingDonut({ data }: { data: FinancingBreakdown[] }) {
   return (
     <div className="grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
       <div className="relative h-48">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={192} minWidth={0}>
           <PieChart>
             <Pie
               data={data}
