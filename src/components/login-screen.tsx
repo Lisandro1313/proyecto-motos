@@ -46,7 +46,9 @@ export function LoginScreen() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") || "");
@@ -57,7 +59,9 @@ export function LoginScreen() {
       return;
     }
 
-    const valid = login(email, password);
+    setSubmitting(true);
+    const valid = await login(email, password);
+    setSubmitting(false);
 
     if (!valid) {
       setError("Correo o contraseña incorrectos.");
@@ -186,10 +190,11 @@ export function LoginScreen() {
 
           <button
             type="submit"
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[linear-gradient(90deg,#2563eb,#16a34a)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/15 hover:brightness-105"
+            disabled={submitting}
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[linear-gradient(90deg,#2563eb,#16a34a)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/15 hover:brightness-105 disabled:opacity-70"
           >
             <Gauge className="size-4" />
-            Ingresar
+            {submitting ? "Ingresando..." : "Ingresar"}
           </button>
 
           <InstallAppButton className="mt-3" />

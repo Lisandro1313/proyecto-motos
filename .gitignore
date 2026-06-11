@@ -34,6 +34,13 @@ dev-server*.log
 # env files (can opt-in for committing if needed)
 .env*
 
+# secrets (service accounts, keys) — NUNCA subir
+/.secrets
+
+# Claude local settings (puede contener tokens registrados por el harness)
+.claude/settings.json
+.claude/settings.local.json
+
 # vercel
 .vercel
 

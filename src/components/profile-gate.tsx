@@ -23,14 +23,8 @@ import {
 
 export function ProfileGate() {
   const router = useRouter();
-  const {
-    adminSession,
-    activeProfile,
-    profiles,
-    selectProfile,
-    updateProfile,
-    logout,
-  } = useAuth();
+  const { activeProfile, profiles, selectProfile, updateProfile, logout } =
+    useAuth();
   const [selectedProfileId, setSelectedProfileId] = useState(
     profiles.find((profile) => profile.active)?.id || "",
   );
@@ -48,9 +42,12 @@ export function ProfileGate() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const effectiveProfileId =
+    selectedProfileId || profiles.find((profile) => profile.active)?.id || "";
+
   const selectedProfile = useMemo(
-    () => profiles.find((profile) => profile.id === selectedProfileId),
-    [profiles, selectedProfileId],
+    () => profiles.find((profile) => profile.id === effectiveProfileId),
+    [profiles, effectiveProfileId],
   );
 
   async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -62,12 +59,12 @@ export function ProfileGate() {
   function handlePinSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!selectedProfileId) {
+    if (!effectiveProfileId) {
       setError("Elegí un perfil para iniciar turno.");
       return;
     }
 
-    const valid = selectProfile(selectedProfileId, pin);
+    const valid = selectProfile(effectiveProfileId, pin);
 
     if (!valid) {
       setError("PIN incorrecto o perfil inactivo.");
@@ -124,7 +121,7 @@ export function ProfileGate() {
               ¿Quién está entrando?
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              Login: <strong>{adminSession?.email}</strong>
+              Elegí tu perfil para iniciar el turno.
             </p>
           </header>
 
@@ -132,7 +129,7 @@ export function ProfileGate() {
             <article>
               <div className="grid gap-3 sm:grid-cols-3">
                 {profiles.map((profile) => {
-                  const selected = profile.id === selectedProfileId;
+                  const selected = profile.id === effectiveProfileId;
 
                   return (
                     <button

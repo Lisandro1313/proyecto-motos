@@ -7,8 +7,8 @@ export const adminCredentials = {
 
 export const defaultWorkerProfiles: WorkerProfile[] = [
   {
-    id: "worker-admin",
-    name: "Administrador",
+    id: "worker-ruso",
+    name: "Ruso",
     role: "Gerencia",
     pin: "1234",
     branch: "RE Motos",

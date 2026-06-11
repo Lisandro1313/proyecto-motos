@@ -10,14 +10,23 @@ import {
   useState,
 } from "react";
 import {
-  adminCredentials,
-  defaultWorkerProfiles,
-} from "@/lib/auth-defaults";
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { auth, db, hasFirebaseConfig } from "@/lib/firebase";
+import { defaultWorkerProfiles } from "@/lib/auth-defaults";
 import type { ActiveWorker, WorkerProfile, WorkerRole } from "@/lib/types";
 
-const ADMIN_SESSION_KEY = "re-motos-admin-session-v1";
 const ACTIVE_PROFILE_KEY = "re-motos-active-profile-v1";
-const WORKER_PROFILES_KEY = "re-motos-worker-profiles-v1";
 
 type AdminSession = {
   email: string;
@@ -44,7 +53,7 @@ type AuthContextValue = {
   adminSession: AdminSession | null;
   activeProfile: ActiveWorker | null;
   profiles: WorkerProfile[];
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   selectProfile: (profileId: string, pin: string) => boolean;
   clearActiveProfile: () => void;
@@ -56,73 +65,79 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function makeId() {
-  return `worker-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 7)}`;
-}
-
-function readJson<T>(key: string, fallback: T) {
-  if (typeof window === "undefined") return fallback;
-
-  const stored = window.localStorage.getItem(key);
-  if (!stored) return fallback;
-
+function readActiveProfile(): ActiveWorker | null {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(ACTIVE_PROFILE_KEY);
+  if (!stored) return null;
   try {
-    return JSON.parse(stored) as T;
+    return JSON.parse(stored) as ActiveWorker;
   } catch {
-    return fallback;
+    return null;
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(!hasFirebaseConfig);
   const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
   const [activeProfile, setActiveProfile] = useState<ActiveWorker | null>(null);
-  const [profiles, setProfiles] =
-    useState<WorkerProfile[]>(defaultWorkerProfiles);
+  const [profiles, setProfiles] = useState<WorkerProfile[]>([]);
 
+  // Sesión del admin (Firebase Auth).
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setAdminSession(readJson<AdminSession | null>(ADMIN_SESSION_KEY, null));
-      setActiveProfile(readJson<ActiveWorker | null>(ACTIVE_PROFILE_KEY, null));
-      setProfiles(
-        readJson<WorkerProfile[]>(WORKER_PROFILES_KEY, defaultWorkerProfiles),
-      );
-      setReady(true);
-    }, 0);
+    if (!hasFirebaseConfig) return;
 
-    return () => window.clearTimeout(timeout);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAdminSession({
+          email: user.email || "",
+          loggedAt:
+            user.metadata.lastSignInTime || new Date().toISOString(),
+        });
+        setActiveProfile(readActiveProfile());
+      } else {
+        setAdminSession(null);
+        setActiveProfile(null);
+        setProfiles([]);
+      }
+      setReady(true);
+    });
+
+    return () => unsubscribe();
   }, []);
 
+  // Perfiles de trabajo (Firestore) — solo cuando hay sesión admin.
   useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(WORKER_PROFILES_KEY, JSON.stringify(profiles));
-  }, [profiles, ready]);
+    if (!hasFirebaseConfig || !adminSession) return;
 
-  const login = useCallback((email: string, password: string) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const valid =
-      normalizedEmail === adminCredentials.email &&
-      password === adminCredentials.password;
+    const unsubscribe = onSnapshot(
+      collection(db, "worker_profiles"),
+      (snap) => {
+        setProfiles(
+          snap.docs.map((d) => ({ ...d.data(), id: d.id }) as WorkerProfile),
+        );
+      },
+    );
 
-    if (!valid) return false;
+    return () => unsubscribe();
+  }, [adminSession]);
 
-    const session = {
-      email: normalizedEmail,
-      loggedAt: new Date().toISOString(),
-    };
-
-    setAdminSession(session);
-    window.localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
-    return true;
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email.trim().toLowerCase(),
+        password,
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   const logout = useCallback(() => {
-    setAdminSession(null);
     setActiveProfile(null);
-    window.localStorage.removeItem(ADMIN_SESSION_KEY);
     window.localStorage.removeItem(ACTIVE_PROFILE_KEY);
+    void signOut(auth);
   }, []);
 
   const selectProfile = useCallback(
@@ -130,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = profiles.find(
         (candidate) => candidate.id === profileId && candidate.active,
       );
-
       if (!profile || profile.pin !== pin.trim()) return false;
 
       const activeWorker: ActiveWorker = {
@@ -139,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: profile.role,
         branch: profile.branch,
         color: profile.color,
+        photo: profile.photo,
         active: profile.active,
         startedAt: new Date().toISOString(),
       };
@@ -159,70 +174,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addProfile = useCallback((profile: WorkerProfileInput) => {
-    setProfiles((currentProfiles) => [
-      {
-        id: makeId(),
-        active: true,
-        ...profile,
-        pin: profile.pin.trim(),
-      },
-      ...currentProfiles,
-    ]);
+    void addDoc(collection(db, "worker_profiles"), {
+      ...profile,
+      pin: profile.pin.trim(),
+      active: true,
+    });
   }, []);
 
   const updateProfile = useCallback(
     (profileId: string, profile: WorkerProfileUpdate) => {
-      setProfiles((currentProfiles) =>
-        currentProfiles.map((currentProfile) =>
-          currentProfile.id === profileId
-            ? {
-                ...currentProfile,
-                ...profile,
-                pin: profile.pin?.trim() || currentProfile.pin,
-              }
-            : currentProfile,
-        ),
-      );
+      const current = profiles.find((candidate) => candidate.id === profileId);
+      const updates: Record<string, unknown> = { ...profile };
+      if (profile.pin !== undefined) {
+        updates.pin = profile.pin.trim() || current?.pin || "";
+      }
+      void updateDoc(doc(db, "worker_profiles", profileId), updates);
 
-      setActiveProfile((currentActiveProfile) => {
-        if (!currentActiveProfile || currentActiveProfile.id !== profileId) {
-          return currentActiveProfile;
-        }
-
-        const nextActiveProfile = {
-          ...currentActiveProfile,
-          ...profile,
-          pin: undefined,
+      setActiveProfile((prev) => {
+        if (!prev || prev.id !== profileId) return prev;
+        const next = {
+          ...prev,
+          name: profile.name ?? prev.name,
+          role: profile.role ?? prev.role,
+          branch: profile.branch ?? prev.branch,
+          color: profile.color ?? prev.color,
+          photo: profile.photo ?? prev.photo,
         };
-
-        delete nextActiveProfile.pin;
-        window.localStorage.setItem(
-          ACTIVE_PROFILE_KEY,
-          JSON.stringify(nextActiveProfile),
-        );
-        return nextActiveProfile;
+        window.localStorage.setItem(ACTIVE_PROFILE_KEY, JSON.stringify(next));
+        return next;
       });
     },
-    [],
+    [profiles],
   );
 
-  const toggleProfile = useCallback((profileId: string) => {
-    setProfiles((currentProfiles) =>
-      currentProfiles.map((profile) =>
-        profile.id === profileId
-          ? { ...profile, active: !profile.active }
-          : profile,
-      ),
-    );
-  }, []);
+  const toggleProfile = useCallback(
+    (profileId: string) => {
+      const current = profiles.find((candidate) => candidate.id === profileId);
+      if (!current) return;
+      void updateDoc(doc(db, "worker_profiles", profileId), {
+        active: !current.active,
+      });
+    },
+    [profiles],
+  );
 
   const resetProfiles = useCallback(() => {
-    setProfiles(defaultWorkerProfiles);
+    for (const profile of defaultWorkerProfiles) {
+      void setDoc(doc(db, "worker_profiles", profile.id), profile);
+    }
     setActiveProfile(null);
-    window.localStorage.setItem(
-      WORKER_PROFILES_KEY,
-      JSON.stringify(defaultWorkerProfiles),
-    );
     window.localStorage.removeItem(ACTIVE_PROFILE_KEY);
   }, []);
 

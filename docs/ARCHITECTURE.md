@@ -4,8 +4,9 @@
 
 - Frontend: Next.js App Router, TypeScript y Tailwind CSS.
 - Deploy: Vercel.
-- Persistencia actual: localStorage con backup/importacion JSON.
-- Proxima persistencia: Supabase Postgres + Storage.
+- Persistencia: Firebase Firestore (datos compartidos en vivo) + Firebase Auth (login admin).
+- Sincronizacion en tiempo real entre dispositivos via onSnapshot.
+- Fotos de motos: pendiente (fase 2: Cloudinary o Firebase Storage/Blaze).
 
 ## Modulos
 
@@ -43,4 +44,7 @@
 
 ## Seguridad
 
-El login actual sigue siendo local/mock para acelerar la salida productiva inicial. Para produccion multiusuario real conviene mover auth, perfiles, PIN hasheado, fotos, stock y bitacora a Supabase.
+- Login admin: Firebase Auth (email/password real).
+- Datos: Firestore con reglas que exigen sesion iniciada (`request.auth != null`).
+- Perfiles de trabajo (PIN) y bitacora viven en Firestore, compartidos entre dispositivos.
+- Pendiente/mejora: PIN hasheado y reglas por rol mas finas si se suman mas usuarios.
