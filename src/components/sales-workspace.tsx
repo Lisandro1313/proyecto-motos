@@ -20,6 +20,8 @@ export function SalesWorkspace() {
   const { activeProfile } = useAuth();
   const [query, setQuery] = useState("");
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Contado");
+  const [installments, setInstallments] = useState(12);
   const effectiveMotorcycleId =
     selectedMotorcycleId || data.motorcycles[0]?.id || "";
 
@@ -44,13 +46,15 @@ export function SalesWorkspace() {
     registerSale({
       customerId: String(formData.get("customerId") || ""),
       motorcycleId: String(formData.get("motorcycleId") || ""),
-      branch: String(formData.get("branch") || "Casa Central"),
-      paymentMethod: String(formData.get("paymentMethod") || "Contado") as PaymentMethod,
+      branch: String(formData.get("branch") || activeProfile.branch),
+      paymentMethod,
       seller: activeProfile.name,
       sellerId: activeProfile.id,
+      installments: paymentMethod === "Financiación" ? installments : undefined,
     });
 
     event.currentTarget.reset();
+    setPaymentMethod("Contado");
   }
 
   return (
@@ -133,6 +137,10 @@ export function SalesWorkspace() {
               </span>
               <select
                 name="paymentMethod"
+                value={paymentMethod}
+                onChange={(event) =>
+                  setPaymentMethod(event.target.value as PaymentMethod)
+                }
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
               >
                 {paymentMethods.map((method) => (
@@ -154,6 +162,36 @@ export function SalesWorkspace() {
               </select>
             </label>
           </div>
+
+          {paymentMethod === "Financiación" ? (
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold uppercase text-slate-500">
+                Plan de cuotas
+              </span>
+              <select
+                value={installments}
+                onChange={(event) =>
+                  setInstallments(Number(event.target.value))
+                }
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+              >
+                {[3, 6, 12, 18].map((n) => {
+                  const cuota =
+                    selectedMotorcycle?.cardInstallments?.[
+                      n as 3 | 6 | 12 | 18
+                    ];
+                  return (
+                    <option key={n} value={n}>
+                      {n} cuotas
+                      {cuota
+                        ? ` · ${formatMoney(cuota, selectedMotorcycle?.currency)} c/u`
+                        : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ) : null}
 
           <button
             type="submit"

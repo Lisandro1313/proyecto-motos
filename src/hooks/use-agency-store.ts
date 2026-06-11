@@ -84,6 +84,7 @@ type MotorcycleEditInput = Partial<
     | "stock"
     | "image"
     | "notes"
+    | "cardInstallments"
   >
 >;
 
@@ -94,6 +95,7 @@ type SaleInput = {
   paymentMethod: PaymentMethod;
   seller: string;
   sellerId?: string;
+  installments?: number;
 };
 
 function today() {
@@ -374,6 +376,8 @@ export function useAgencyStore() {
       if (fields.currency !== undefined) updates.currency = fields.currency;
       if (fields.image !== undefined) updates.image = fields.image;
       if (fields.notes !== undefined) updates.notes = fields.notes;
+      if (fields.cardInstallments !== undefined)
+        updates.cardInstallments = fields.cardInstallments;
       if (fields.price !== undefined) updates.price = Number(fields.price) || 0;
       if (fields.cost !== undefined) updates.cost = Number(fields.cost) || 0;
       if (fields.stock !== undefined) {
@@ -443,17 +447,38 @@ export function useAgencyStore() {
       batch.set(saleRef, sale);
 
       if (input.paymentMethod === "Financiación" && motorcycle.currency === "ARS") {
-        const downPayment = Math.round(motorcycle.price * 0.2);
-        const financedAmount = motorcycle.price - downPayment;
+        const installments = input.installments || 12;
+        const cardCuota =
+          motorcycle.cardInstallments?.[installments as 3 | 6 | 12 | 18];
+
+        let downPayment: number;
+        let financedAmount: number;
+        let installmentAmount: number;
+        let total: number;
+
+        if (cardCuota) {
+          // Plan con tarjeta (precio con recargo, sin entrega).
+          downPayment = 0;
+          installmentAmount = cardCuota;
+          financedAmount = cardCuota * installments;
+          total = financedAmount;
+        } else {
+          // Plan propio: 20% de entrega y el resto en cuotas.
+          downPayment = Math.round(motorcycle.price * 0.2);
+          financedAmount = motorcycle.price - downPayment;
+          installmentAmount = Math.round(financedAmount / installments);
+          total = motorcycle.price;
+        }
+
         const financing: Omit<Financing, "id"> = {
           saleId: saleRef.id,
           customerName: customer.name,
           motorcycleModel: `${motorcycle.brand} ${motorcycle.model}`,
-          total: motorcycle.price,
+          total,
           downPayment,
           financedAmount,
-          installments: 12,
-          installmentAmount: Math.round(financedAmount / 12),
+          installments,
+          installmentAmount,
           paidInstallments: 0,
           nextDueDate: addDays(30),
           status: "Activa",

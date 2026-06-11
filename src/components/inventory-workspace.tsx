@@ -9,7 +9,7 @@ import { MotorcycleDetailModal } from "@/components/motorcycle-detail-modal";
 import { useAuth } from "@/context/auth-context";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 import { readImageAsResizedDataUrl } from "@/lib/file-utils";
-import { formatMoney } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import type { Currency, Motorcycle } from "@/lib/types";
 
 const categories = ["Todas", "Cub", "Street", "Trail", "Deportiva"];
@@ -34,6 +34,14 @@ export function InventoryWorkspace() {
   );
   const [viewingMotorcycle, setViewingMotorcycle] = useState<Motorcycle | null>(
     null,
+  );
+
+  const inventoryLog = useMemo(
+    () =>
+      data.activityLog
+        .filter((event) => event.type === "stock" || event.type === "precio")
+        .slice(0, 12),
+    [data.activityLog],
   );
 
   const filteredMotorcycles = useMemo(() => {
@@ -565,6 +573,39 @@ export function InventoryWorkspace() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">
+            Movimientos recientes
+          </h2>
+          <p className="text-sm text-slate-500">
+            Quién tocó stock, precios o dio de alta una moto, y cuándo.
+          </p>
+          <div className="mt-4 space-y-2">
+            {inventoryLog.length === 0 ? (
+              <p className="text-sm text-slate-400">Sin movimientos todavía.</p>
+            ) : (
+              inventoryLog.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-800">
+                      {event.description}
+                    </p>
+                    <p className="text-xs font-semibold text-[#3f6f4d]">
+                      {event.workerName || "Sistema"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs text-slate-400">
+                    {formatDate(event.createdAt)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

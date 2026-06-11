@@ -21,6 +21,7 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { InstallAppButton } from "@/components/install-app-button";
 import { MotoLoadingScreen } from "@/components/moto-loading-screen";
+import { MotoCarousel } from "@/components/moto-carousel";
 import { ProfileSettingsModal } from "@/components/profile-settings-modal";
 
 const navigation = [
@@ -171,21 +172,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="px-4 pb-4">
-          <div className="relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-4">
-            <Image
-              src="/re-motos-logo.jpeg"
-              alt="Logo de RE Motos"
-              fill
-              sizes="260px"
-              className="object-cover opacity-45"
-            />
-            <div className="relative min-h-36">
-              <p className="max-w-36 text-2xl font-semibold leading-8">
-                Stock real, precios claros
-              </p>
-              <p className="mt-2 text-sm text-slate-200">RE Motos</p>
-            </div>
-          </div>
+          <MotoCarousel />
         </div>
 
         <div className="border-t border-white/10 p-4">

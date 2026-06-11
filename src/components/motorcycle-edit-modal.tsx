@@ -21,8 +21,11 @@ type EditFields = Partial<
     | "stock"
     | "image"
     | "notes"
+    | "cardInstallments"
   >
 >;
+
+const planList = [3, 6, 12, 18] as const;
 
 type MotorcycleEditModalProps = {
   motorcycle: Motorcycle | null;
@@ -53,6 +56,12 @@ export function MotorcycleEditModal({
     if (!motorcycle) return;
     const form = new FormData(event.currentTarget);
 
+    const cardInstallments: Partial<Record<3 | 6 | 12 | 18, number>> = {};
+    for (const n of planList) {
+      const value = Number(form.get(`cuota${n}`) || 0);
+      if (value > 0) cardInstallments[n] = value;
+    }
+
     onSave(motorcycle.id, {
       brand: String(form.get("brand") || "").trim() || motorcycle.brand,
       model: String(form.get("model") || "").trim() || motorcycle.model,
@@ -62,6 +71,7 @@ export function MotorcycleEditModal({
       cost: Number(form.get("cost") || 0),
       stock: Number(form.get("stock") || 0),
       notes: String(form.get("notes") || ""),
+      cardInstallments,
       ...(photo ? { image: photo } : {}),
     });
   }
@@ -213,6 +223,32 @@ export function MotorcycleEditModal({
               placeholder="Color, condición, observaciones"
             />
           </label>
+
+          <div className="space-y-1.5">
+            <span className="text-xs font-semibold uppercase text-slate-500">
+              Cuota por plan (tarjeta)
+            </span>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {planList.map((n) => (
+                <label key={n} className="space-y-1">
+                  <span className="block text-xs text-slate-500">
+                    {n} cuotas
+                  </span>
+                  <input
+                    name={`cuota${n}`}
+                    type="number"
+                    min="0"
+                    defaultValue={motorcycle.cardInstallments?.[n] || ""}
+                    className="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm outline-none focus:border-blue-500"
+                    placeholder="0"
+                  />
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400">
+              Es el valor de cada cuota. Dejá en 0 si ese plan no aplica.
+            </p>
+          </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             {confirmDelete ? (
