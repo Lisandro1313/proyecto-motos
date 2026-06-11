@@ -3,11 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import { Bike, CreditCard, MapPin, ShoppingBag, Users } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
+import { MotorcycleDetailModal } from "@/components/motorcycle-detail-modal";
 import { formatCurrency, formatDate, formatMoney, initials } from "@/lib/format";
 import { useAgencyStore } from "@/hooks/use-agency-store";
+import type { Motorcycle } from "@/lib/types";
 
 const SalesLineChart = dynamic(
   () =>
@@ -35,6 +38,9 @@ const financingOptions = [3, 6, 12, 18];
 
 export function DashboardHome() {
   const { data, totals } = useAgencyStore();
+  const [viewingMotorcycle, setViewingMotorcycle] = useState<Motorcycle | null>(
+    null,
+  );
   const featuredMotorcycles = data.motorcycles.slice(0, 4);
   const simulatorMotorcycle = data.motorcycles[0];
   const recentSales = data.sales.slice(0, 5);
@@ -241,9 +247,11 @@ export function DashboardHome() {
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {featuredMotorcycles.map((motorcycle) => (
-              <div
+              <button
                 key={motorcycle.id}
-                className="rounded-lg border border-slate-200 p-3"
+                type="button"
+                onClick={() => setViewingMotorcycle(motorcycle)}
+                className="group rounded-lg border border-slate-200 p-3 text-left transition hover:border-[#3f6f4d] hover:shadow-sm"
               >
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
                   <Image
@@ -251,7 +259,7 @@ export function DashboardHome() {
                     alt={`${motorcycle.brand} ${motorcycle.model}`}
                     fill
                     sizes="(min-width: 1280px) 260px, 50vw"
-                    className="object-cover"
+                    className="object-contain p-2 transition group-hover:scale-[1.03]"
                   />
                 </div>
                 <p className="mt-3 font-semibold text-slate-950">
@@ -260,7 +268,7 @@ export function DashboardHome() {
                 <p className="text-sm font-medium text-slate-600">
                   {formatMoney(motorcycle.price, motorcycle.currency)}
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </article>
@@ -353,6 +361,11 @@ export function DashboardHome() {
           </div>
         </article>
       </section>
+
+      <MotorcycleDetailModal
+        motorcycle={viewingMotorcycle}
+        onClose={() => setViewingMotorcycle(null)}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { type ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { Minus, Pencil, Plus, Search } from "lucide-react";
+import { Minus, Pencil, Plus, Search, X } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { MotorcycleEditModal } from "@/components/motorcycle-edit-modal";
 import { MotorcycleDetailModal } from "@/components/motorcycle-detail-modal";
@@ -27,6 +27,7 @@ export function InventoryWorkspace() {
   const { activeProfile } = useAuth();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [newImage, setNewImage] = useState("");
   const [editingMotorcycle, setEditingMotorcycle] = useState<Motorcycle | null>(
     null,
@@ -75,20 +76,34 @@ export function InventoryWorkspace() {
 
     setNewImage("");
     event.currentTarget.reset();
+    setAddModalOpen(false);
   }
 
   return (
-    <div className="grid min-w-0 gap-4 sm:gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
-      <section className="space-y-4">
-        <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-950">
-            Registrar moto
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Alta productiva con precio, costo, moneda y foto.
-          </p>
+    <div className="space-y-5">
+      {addModalOpen ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-3 sm:p-6">
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-slate-950">
+                  Registrar moto
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Nuevo modelo con precio, costo, moneda y foto.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setAddModalOpen(false)}
+                className="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
               <label className="space-y-1.5">
                 <span className="text-xs font-semibold uppercase text-slate-500">
@@ -255,9 +270,9 @@ export function InventoryWorkspace() {
               Agregar al inventario
             </button>
           </form>
-        </article>
-
-      </section>
+          </div>
+        </div>
+      ) : null}
 
       <section className="space-y-5">
         <div className="grid gap-4 md:grid-cols-4">
@@ -319,6 +334,14 @@ export function InventoryWorkspace() {
                   <option key={item}>{item}</option>
                 ))}
               </select>
+              <button
+                type="button"
+                onClick={() => setAddModalOpen(true)}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#3f6f4d] px-4 py-2 text-sm font-semibold text-white hover:bg-[#345f41]"
+              >
+                <Plus className="size-4" />
+                Registrar moto
+              </button>
             </div>
           </div>
 

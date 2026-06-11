@@ -176,8 +176,8 @@ async function seedFirestore() {
   await db.collection("branches").doc("re-motos").set({
     id: "re-motos",
     name: BRANCH,
-    city: "Córdoba",
-    address: "Casa central",
+    city: "Gualeguaychú",
+    address: "Gualeguaychú, Entre Ríos",
     manager: "Ruso",
     stock: 0,
     monthlySales: 0,

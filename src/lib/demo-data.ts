@@ -253,9 +253,9 @@ export const demoData: AgencyData = {
     {
       id: "suc-re-motos",
       name: "RE Motos",
-      city: "Cordoba",
-      address: "Casa central",
-      manager: "Administrador",
+      city: "Gualeguaychú",
+      address: "Gualeguaychú, Entre Ríos",
+      manager: "Ruso",
       stock: priceListMotorcycles.reduce(
         (total, motorcycle) => total + motorcycle.stock,
         0,

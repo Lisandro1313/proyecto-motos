@@ -9,7 +9,7 @@ import type { Motorcycle } from "@/lib/types";
 type MotorcycleDetailModalProps = {
   motorcycle: Motorcycle | null;
   onClose: () => void;
-  onEdit: (motorcycle: Motorcycle) => void;
+  onEdit?: (motorcycle: Motorcycle) => void;
 };
 
 export function MotorcycleDetailModal({
@@ -114,14 +114,16 @@ export function MotorcycleDetailModal({
             >
               Cerrar
             </button>
-            <button
-              type="button"
-              onClick={() => onEdit(motorcycle)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#3f6f4d] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#345f41]"
-            >
-              <Pencil className="size-4" />
-              Editar
-            </button>
+            {onEdit ? (
+              <button
+                type="button"
+                onClick={() => onEdit(motorcycle)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#3f6f4d] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#345f41]"
+              >
+                <Pencil className="size-4" />
+                Editar
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
