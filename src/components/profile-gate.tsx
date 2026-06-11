@@ -1,20 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { type ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera,
   CheckCircle2,
   KeyRound,
   LogOut,
   Quote,
-  Save,
   ShieldCheck,
 } from "lucide-react";
 import { MotoAuthBackdrop } from "@/components/moto-auth-backdrop";
 import { useAuth } from "@/context/auth-context";
-import { readFileAsDataUrl } from "@/lib/file-utils";
 import {
   pickDailyQuote,
   pickRandomQuote,
@@ -23,15 +20,12 @@ import {
 
 export function ProfileGate() {
   const router = useRouter();
-  const { activeProfile, profiles, selectProfile, updateProfile, logout } =
-    useAuth();
+  const { activeProfile, profiles, selectProfile, logout } = useAuth();
   const [selectedProfileId, setSelectedProfileId] = useState(
     profiles.find((profile) => profile.active)?.id || "",
   );
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const [profileMessage, setProfileMessage] = useState("");
-  const [photoPreview, setPhotoPreview] = useState("");
   const [quote, setQuote] = useState<MotoQuote>(() => pickDailyQuote());
 
   useEffect(() => {
@@ -49,12 +43,6 @@ export function ProfileGate() {
     () => profiles.find((profile) => profile.id === effectiveProfileId),
     [profiles, effectiveProfileId],
   );
-
-  async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
-    if (!file) return;
-    setPhotoPreview(await readFileAsDataUrl(file));
-  }
 
   function handlePinSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,28 +62,6 @@ export function ProfileGate() {
     setError("");
     setPin("");
     router.push("/");
-  }
-
-  function handleProfileUpdate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedProfile) return;
-
-    const formData = new FormData(event.currentTarget);
-    const nextPin = String(formData.get("pin") || "").trim();
-
-    if (nextPin && !/^\d{4,6}$/.test(nextPin)) {
-      setProfileMessage("El PIN debe tener entre 4 y 6 números.");
-      return;
-    }
-
-    updateProfile(selectedProfile.id, {
-      pin: nextPin || selectedProfile.pin,
-      photo: photoPreview || selectedProfile.photo,
-    });
-
-    setProfileMessage("Perfil actualizado.");
-    setPhotoPreview("");
-    event.currentTarget.reset();
   }
 
   function closeSession() {
@@ -138,8 +104,6 @@ export function ProfileGate() {
                       onClick={() => {
                         setSelectedProfileId(profile.id);
                         setError("");
-                        setProfileMessage("");
-                        setPhotoPreview("");
                       }}
                       className={`min-h-40 rounded-lg border p-4 text-center transition ${
                         selected
@@ -240,69 +204,6 @@ export function ProfileGate() {
                 >
                   <ShieldCheck className="size-4" />
                   Iniciar turno
-                </button>
-              </form>
-
-              <form
-                onSubmit={handleProfileUpdate}
-                className="rounded-lg border border-slate-200 bg-white p-4"
-              >
-                <div className="flex items-center gap-2">
-                  <Camera className="size-5 text-[#3f6f4d]" />
-                  <h2 className="text-base font-semibold text-slate-950">
-                    PIN y foto
-                  </h2>
-                </div>
-
-                <label className="mt-4 block space-y-1.5">
-                  <span className="text-xs font-semibold uppercase text-slate-500">
-                    Nuevo PIN
-                  </span>
-                  <input
-                    name="pin"
-                    inputMode="numeric"
-                    maxLength={6}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#3f6f4d]"
-                    placeholder="Dejar vacío para mantener"
-                  />
-                </label>
-
-                <label className="mt-3 block space-y-1.5">
-                  <span className="text-xs font-semibold uppercase text-slate-500">
-                    Foto del perfil
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold"
-                  />
-                </label>
-
-                {photoPreview ? (
-                  <div className="relative mt-3 aspect-square overflow-hidden rounded-lg bg-slate-100">
-                    <Image
-                      src={photoPreview}
-                      alt="Vista previa"
-                      fill
-                      sizes="300px"
-                      className="object-cover"
-                    />
-                  </div>
-                ) : null}
-
-                {profileMessage ? (
-                  <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-                    {profileMessage}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  <Save className="size-4" />
-                  Guardar perfil
                 </button>
               </form>
 

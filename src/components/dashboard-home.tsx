@@ -115,44 +115,53 @@ export function DashboardHome() {
             </h2>
           </div>
 
-          <div className="mt-4 rounded-lg bg-blue-50 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="font-semibold text-blue-950">
-                  {simulatorMotorcycle.brand} {simulatorMotorcycle.model}
-                </p>
-                <p className="text-sm text-blue-700">
-                  Precio de lista actualizado
-                </p>
-              </div>
-              <p className="text-lg font-semibold text-blue-950">
-                {formatMoney(simulatorMotorcycle.price, simulatorMotorcycle.currency)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
-            {financingOptions.map((installments) => {
-              const monthly = Math.round(
-                simulatorMotorcycle.price / installments,
-              );
-
-              return (
-                <div
-                  key={installments}
-                  className="rounded-lg border border-slate-200 p-3"
-                >
-                  <p className="text-xs font-semibold text-blue-600">
-                    Tarjeta {installments}
+          {simulatorMotorcycle ? (
+            <>
+              <div className="mt-4 rounded-lg bg-blue-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-blue-950">
+                      {simulatorMotorcycle.brand} {simulatorMotorcycle.model}
+                    </p>
+                    <p className="text-sm text-blue-700">
+                      Precio de lista actualizado
+                    </p>
+                  </div>
+                  <p className="text-lg font-semibold text-blue-950">
+                    {formatMoney(
+                      simulatorMotorcycle.price,
+                      simulatorMotorcycle.currency,
+                    )}
                   </p>
-                  <p className="mt-1 text-base font-semibold text-slate-950">
-                    {formatMoney(monthly, simulatorMotorcycle.currency)}
-                  </p>
-                  <p className="text-xs text-slate-500">por mes</p>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+                {financingOptions.map((installments) => {
+                  const monthly = Math.round(
+                    simulatorMotorcycle.price / installments,
+                  );
+
+                  return (
+                    <div
+                      key={installments}
+                      className="rounded-lg border border-slate-200 p-3"
+                    >
+                      <p className="text-xs font-semibold text-blue-600">
+                        Tarjeta {installments}
+                      </p>
+                      <p className="mt-1 text-base font-semibold text-slate-950">
+                        {formatMoney(monthly, simulatorMotorcycle.currency)}
+                      </p>
+                      <p className="text-xs text-slate-500">por mes</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="mt-4 text-sm text-slate-500">Cargando catálogo…</p>
+          )}
 
           <Link
             href="/financiacion"

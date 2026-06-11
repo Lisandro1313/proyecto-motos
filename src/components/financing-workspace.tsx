@@ -12,11 +12,11 @@ const plans = [3, 6, 12, 18];
 export function FinancingWorkspace() {
   const { data, totals, registerPayment } = useAgencyStore();
   const { activeProfile } = useAuth();
-  const [selectedMotorcycleId, setSelectedMotorcycleId] = useState(
-    data.motorcycles[0]?.id || "",
-  );
+  const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
+  const effectiveMotorcycleId =
+    selectedMotorcycleId || data.motorcycles[0]?.id || "";
   const selectedMotorcycle = data.motorcycles.find(
-    (motorcycle) => motorcycle.id === selectedMotorcycleId,
+    (motorcycle) => motorcycle.id === effectiveMotorcycleId,
   );
 
   const activeFinancings = useMemo(
@@ -67,7 +67,7 @@ export function FinancingWorkspace() {
               Moto
             </span>
             <select
-              value={selectedMotorcycleId}
+              value={effectiveMotorcycleId}
               onChange={(event) => setSelectedMotorcycleId(event.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
             >

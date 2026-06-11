@@ -19,12 +19,12 @@ export function SalesWorkspace() {
   const { data, totals, registerSale } = useAgencyStore();
   const { activeProfile } = useAuth();
   const [query, setQuery] = useState("");
-  const [selectedMotorcycleId, setSelectedMotorcycleId] = useState(
-    data.motorcycles[0]?.id || "",
-  );
+  const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
+  const effectiveMotorcycleId =
+    selectedMotorcycleId || data.motorcycles[0]?.id || "";
 
   const selectedMotorcycle = data.motorcycles.find(
-    (motorcycle) => motorcycle.id === selectedMotorcycleId,
+    (motorcycle) => motorcycle.id === effectiveMotorcycleId,
   );
 
   const filteredSales = useMemo(() => {
@@ -96,7 +96,7 @@ export function SalesWorkspace() {
             <select
               name="motorcycleId"
               required
-              value={selectedMotorcycleId}
+              value={effectiveMotorcycleId}
               onChange={(event) => setSelectedMotorcycleId(event.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
             >
