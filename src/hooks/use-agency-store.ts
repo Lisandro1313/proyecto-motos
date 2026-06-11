@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   limit,
   onSnapshot,
@@ -70,6 +71,21 @@ type MotorcyclePricingInput = {
   note?: string;
   worker?: ActiveWorker;
 };
+
+type MotorcycleEditInput = Partial<
+  Pick<
+    Motorcycle,
+    | "brand"
+    | "model"
+    | "category"
+    | "price"
+    | "currency"
+    | "cost"
+    | "stock"
+    | "image"
+    | "notes"
+  >
+>;
 
 type SaleInput = {
   customerId: string;
@@ -345,6 +361,61 @@ export function useAgencyStore() {
     [motorcycles, logActivity],
   );
 
+  const updateMotorcycle = useCallback(
+    (motorcycleId: string, fields: MotorcycleEditInput, worker?: ActiveWorker) => {
+      const target = motorcycles.find((m) => m.id === motorcycleId);
+      if (!target) return;
+      const now = new Date().toISOString();
+
+      const updates: Record<string, unknown> = { updatedAt: now };
+      if (fields.brand !== undefined) updates.brand = fields.brand;
+      if (fields.model !== undefined) updates.model = fields.model;
+      if (fields.category !== undefined) updates.category = fields.category;
+      if (fields.currency !== undefined) updates.currency = fields.currency;
+      if (fields.image !== undefined) updates.image = fields.image;
+      if (fields.notes !== undefined) updates.notes = fields.notes;
+      if (fields.price !== undefined) updates.price = Number(fields.price) || 0;
+      if (fields.cost !== undefined) updates.cost = Number(fields.cost) || 0;
+      if (fields.stock !== undefined) {
+        const stock = Math.max(0, Number(fields.stock) || 0);
+        updates.stock = stock;
+        updates.status = statusFromStock(stock);
+      }
+
+      void updateDoc(doc(db, "motorcycles", motorcycleId), updates).then(() =>
+        logActivity({
+          type: "stock",
+          workerId: worker?.id,
+          workerName: worker?.name || "Sistema",
+          description: `Editó la ficha de ${updates.brand || target.brand} ${
+            updates.model || target.model
+          }.`,
+          createdAt: now,
+        }),
+      );
+    },
+    [motorcycles, logActivity],
+  );
+
+  const deleteMotorcycle = useCallback(
+    (motorcycleId: string, worker?: ActiveWorker) => {
+      const target = motorcycles.find((m) => m.id === motorcycleId);
+      if (!target) return;
+      const now = new Date().toISOString();
+
+      void deleteDoc(doc(db, "motorcycles", motorcycleId)).then(() =>
+        logActivity({
+          type: "stock",
+          workerId: worker?.id,
+          workerName: worker?.name || "Sistema",
+          description: `Eliminó del inventario ${target.brand} ${target.model}.`,
+          createdAt: now,
+        }),
+      );
+    },
+    [motorcycles, logActivity],
+  );
+
   const registerSale = useCallback(
     (input: SaleInput) => {
       const customer = customers.find((c) => c.id === input.customerId);
@@ -536,6 +607,8 @@ export function useAgencyStore() {
     adjustMotorcycleStock,
     receiveMotorcycleStock,
     updateMotorcyclePricing,
+    updateMotorcycle,
+    deleteMotorcycle,
     registerSale,
     registerPayment,
     resetData,

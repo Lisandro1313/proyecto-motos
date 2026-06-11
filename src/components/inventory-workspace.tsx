@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import { type ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { Minus, Plus, Save, Search } from "lucide-react";
+import { Minus, Pencil, Plus, Search } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
+import { MotorcycleEditModal } from "@/components/motorcycle-edit-modal";
+import { MotorcycleDetailModal } from "@/components/motorcycle-detail-modal";
 import { useAuth } from "@/context/auth-context";
 import { useAgencyStore } from "@/hooks/use-agency-store";
 import { readImageAsResizedDataUrl } from "@/lib/file-utils";
 import { formatMoney } from "@/lib/format";
-import type { Currency } from "@/lib/types";
+import type { Currency, Motorcycle } from "@/lib/types";
 
 const categories = ["Todas", "Cub", "Street", "Trail", "Deportiva"];
 const currencies: Currency[] = ["ARS", "USD"];
@@ -19,21 +21,19 @@ export function InventoryWorkspace() {
     totals,
     addMotorcycle,
     adjustMotorcycleStock,
-    receiveMotorcycleStock,
-    updateMotorcyclePricing,
+    updateMotorcycle,
+    deleteMotorcycle,
   } = useAgencyStore();
   const { activeProfile } = useAuth();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
   const [newImage, setNewImage] = useState("");
-  const [receiptImage, setReceiptImage] = useState("");
-  const [managedMotorcycleId, setManagedMotorcycleId] = useState(
-    data.motorcycles[0]?.id || "",
+  const [editingMotorcycle, setEditingMotorcycle] = useState<Motorcycle | null>(
+    null,
   );
-
-  const managedMotorcycle =
-    data.motorcycles.find((motorcycle) => motorcycle.id === managedMotorcycleId) ||
-    data.motorcycles[0];
+  const [viewingMotorcycle, setViewingMotorcycle] = useState<Motorcycle | null>(
+    null,
+  );
 
   const filteredMotorcycles = useMemo(() => {
     return data.motorcycles.filter((motorcycle) => {
@@ -74,45 +74,6 @@ export function InventoryWorkspace() {
     });
 
     setNewImage("");
-    event.currentTarget.reset();
-  }
-
-  function handleReceiptSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!managedMotorcycle) return;
-
-    const formData = new FormData(event.currentTarget);
-    const quantity = Number(formData.get("quantity") || 0);
-    const currency = String(
-      formData.get("currency") || managedMotorcycle.currency,
-    ) as Currency;
-    const cost = Number(formData.get("cost") || 0);
-    const price = Number(formData.get("price") || managedMotorcycle.price);
-    const note = String(formData.get("note") || "");
-
-    if (quantity > 0) {
-      receiveMotorcycleStock({
-        motorcycleId: managedMotorcycle.id,
-        quantity,
-        cost,
-        price,
-        currency,
-        image: receiptImage,
-        note,
-        worker: activeProfile || undefined,
-      });
-    } else {
-      updateMotorcyclePricing({
-        motorcycleId: managedMotorcycle.id,
-        price,
-        cost,
-        currency,
-        note,
-        worker: activeProfile || undefined,
-      });
-    }
-
-    setReceiptImage("");
     event.currentTarget.reset();
   }
 
@@ -296,124 +257,6 @@ export function InventoryWorkspace() {
           </form>
         </article>
 
-        <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-950">
-            Ingreso y precios
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Registra compras, subas de costo y nuevo precio de lista.
-          </p>
-
-          <form
-            key={managedMotorcycle?.id || "receipt"}
-            onSubmit={handleReceiptSubmit}
-            className="mt-5 space-y-4"
-          >
-            <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase text-slate-500">
-                Modelo
-              </span>
-              <select
-                value={managedMotorcycle?.id || ""}
-                onChange={(event) => setManagedMotorcycleId(event.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              >
-                {data.motorcycles.map((motorcycle) => (
-                  <option key={motorcycle.id} value={motorcycle.id}>
-                    {motorcycle.brand} {motorcycle.model}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="space-y-1.5">
-                <span className="text-xs font-semibold uppercase text-slate-500">
-                  Ingreso unidades
-                </span>
-                <input
-                  name="quantity"
-                  min="0"
-                  type="number"
-                  defaultValue="0"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                />
-              </label>
-              <label className="space-y-1.5">
-                <span className="text-xs font-semibold uppercase text-slate-500">
-                  Moneda
-                </span>
-                <select
-                  name="currency"
-                  defaultValue={managedMotorcycle?.currency || "ARS"}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                >
-                  {currencies.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="space-y-1.5">
-                <span className="text-xs font-semibold uppercase text-slate-500">
-                  Nuevo costo
-                </span>
-                <input
-                  name="cost"
-                  min="0"
-                  type="number"
-                  defaultValue={managedMotorcycle?.cost || 0}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                />
-              </label>
-              <label className="space-y-1.5">
-                <span className="text-xs font-semibold uppercase text-slate-500">
-                  Nuevo precio
-                </span>
-                <input
-                  name="price"
-                  min="0"
-                  type="number"
-                  defaultValue={managedMotorcycle?.price || 0}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                />
-              </label>
-            </div>
-
-            <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase text-slate-500">
-                Nueva foto
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => handleImageFile(event, setReceiptImage)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold"
-              />
-            </label>
-
-            <label className="block space-y-1.5">
-              <span className="text-xs font-semibold uppercase text-slate-500">
-                Motivo
-              </span>
-              <input
-                name="note"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-                placeholder="Ingreso, aumento proveedor, correccion"
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              <Save className="size-4" />
-              Guardar movimiento
-            </button>
-          </form>
-        </article>
       </section>
 
       <section className="space-y-5">
@@ -486,7 +329,12 @@ export function InventoryWorkspace() {
                 className="rounded-lg border border-slate-200 p-3"
               >
                 <div className="flex gap-3">
-                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setViewingMotorcycle(motorcycle)}
+                    className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                    aria-label="Ver foto"
+                  >
                     <Image
                       src={motorcycle.image}
                       alt={`${motorcycle.brand} ${motorcycle.model}`}
@@ -494,7 +342,7 @@ export function InventoryWorkspace() {
                       sizes="64px"
                       className="object-cover"
                     />
-                  </div>
+                  </button>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-slate-950">
                       {motorcycle.brand} {motorcycle.model}
@@ -550,6 +398,24 @@ export function InventoryWorkspace() {
                     Sumar
                   </button>
                 </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewingMotorcycle(motorcycle)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    <Search className="size-4" />
+                    Ver
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingMotorcycle(motorcycle)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    <Pencil className="size-4" />
+                    Editar
+                  </button>
+                </div>
               </article>
             ))}
           </div>
@@ -573,7 +439,12 @@ export function InventoryWorkspace() {
                   <tr key={motorcycle.id} className="border-b border-slate-100">
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="relative size-12 overflow-hidden rounded-lg bg-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setViewingMotorcycle(motorcycle)}
+                          className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                          aria-label="Ver foto"
+                        >
                           <Image
                             src={motorcycle.image}
                             alt={`${motorcycle.brand} ${motorcycle.model}`}
@@ -581,11 +452,15 @@ export function InventoryWorkspace() {
                             sizes="48px"
                             className="object-cover"
                           />
-                        </div>
+                        </button>
                         <div>
-                          <p className="font-semibold text-slate-950">
+                          <button
+                            type="button"
+                            onClick={() => setViewingMotorcycle(motorcycle)}
+                            className="text-left font-semibold text-slate-950 hover:text-blue-600"
+                          >
                             {motorcycle.brand} {motorcycle.model}
-                          </p>
+                          </button>
                           <p className="text-xs text-slate-500">
                             {motorcycle.branch}
                           </p>
@@ -653,6 +528,14 @@ export function InventoryWorkspace() {
                         >
                           <Plus className="size-4" />
                         </button>
+                        <button
+                          type="button"
+                          aria-label="Editar moto"
+                          onClick={() => setEditingMotorcycle(motorcycle)}
+                          className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                        >
+                          <Pencil className="size-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -662,6 +545,28 @@ export function InventoryWorkspace() {
           </div>
         </div>
       </section>
+
+      <MotorcycleEditModal
+        motorcycle={editingMotorcycle}
+        onClose={() => setEditingMotorcycle(null)}
+        onSave={(id, fields) => {
+          updateMotorcycle(id, fields, activeProfile || undefined);
+          setEditingMotorcycle(null);
+        }}
+        onDelete={(id) => {
+          deleteMotorcycle(id, activeProfile || undefined);
+          setEditingMotorcycle(null);
+        }}
+      />
+
+      <MotorcycleDetailModal
+        motorcycle={viewingMotorcycle}
+        onClose={() => setViewingMotorcycle(null)}
+        onEdit={(moto) => {
+          setViewingMotorcycle(null);
+          setEditingMotorcycle(moto);
+        }}
+      />
     </div>
   );
 }
