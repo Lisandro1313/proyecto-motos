@@ -22,6 +22,8 @@ import { useAuth } from "@/context/auth-context";
 import { InstallAppButton } from "@/components/install-app-button";
 import { MotoLoadingScreen } from "@/components/moto-loading-screen";
 import { MotoCarousel } from "@/components/moto-carousel";
+import { MotoTip } from "@/components/moto-tip";
+import { NewsTicker } from "@/components/news-ticker";
 import { ProfileSettingsModal } from "@/components/profile-settings-modal";
 
 const navigation = [
@@ -145,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="space-y-1 px-3 py-4">
           {navigation.map((item) => {
             const Icon = item.icon;
             const active =
@@ -170,6 +172,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <InstallAppButton className="pt-3" variant="dark" />
         </nav>
+
+        <div className="flex flex-1 items-center px-4">
+          <MotoTip />
+        </div>
 
         <div className="px-4 pb-4">
           <MotoCarousel />
@@ -257,6 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="lg:pl-72">
+        <NewsTicker />
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
           <div className="flex min-h-16 items-center gap-2 px-3 py-3 sm:min-h-20 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
             <button

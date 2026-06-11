@@ -66,3 +66,21 @@ textarea {
     transform: translateY(-4px) rotate(2deg);
   }
 }
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker-scroll linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}

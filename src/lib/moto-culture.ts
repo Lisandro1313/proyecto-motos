@@ -304,6 +304,17 @@ export const motoQuotes: MotoQuote[] = [
   },
 ];
 
+export const motoTips: string[] = [
+  "Una cadena limpia y lubricada siempre vende confianza.",
+  "Antes de entregar una moto: luces, frenos, presión y sonrisa.",
+  "Si el motor no regula parejo, la bujía suele contar la historia.",
+  "La mejor ficha comercial empieza con el estado real de la moto.",
+  "Un buen vendedor conoce el sonido antes que el precio.",
+  "Cargar bien el stock hoy evita vueltas raras mañana.",
+  "Casco siempre: la mejor venta es el cliente que vuelve.",
+  "Una moto limpia se vende sola.",
+];
+
 export function pickDailyTrivia() {
   const index = new Date().getDate() % motoTriviaQuestions.length;
   return motoTriviaQuestions[index];
